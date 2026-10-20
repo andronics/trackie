@@ -1,34 +1,16 @@
 from collections.abc import Callable
-from dataclasses import replace
 
 import pytest
 import requests
 import requests_mock
 
-from trackie.config import TrackerConfig
 from trackie.fetch import AuthError, FetchError, SiteClient
 from trackie.sites import SITES
 
-COOKIE = "uid=1000000; pass=SECRETVALUE"
+from .helpers import tracker_cfg
+
+COOKIE = tracker_cfg("ipt").cookie
 Page = Callable[[str], str]
-
-
-def tracker_cfg(key: str, **overrides: object) -> TrackerConfig:
-    site = SITES[key]
-    cfg = TrackerConfig(
-        key=key,
-        enabled=True,
-        base_url=site.base_url,
-        cookie=COOKIE,
-        user_agent="test-agent",
-        user_id=None,
-        request_gap_s=5,
-        hnr_limit=site.hnr_limit,
-        hnr_grace_s=site.hnr_grace_s,
-        min_ratio=site.min_ratio,
-        announce_hosts=(),
-    )
-    return replace(cfg, **overrides)  # type: ignore[arg-type]
 
 
 class FakeClock:

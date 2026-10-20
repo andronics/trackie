@@ -12,6 +12,14 @@
 http:
   timeout: 30                # seconds per request (TRACKIE_TIMEOUT)
 
+poll:
+  interval: 2700             # seconds between fetches per tracker, min 600 (TRACKIE_POLL_INTERVAL)
+  jitter: 600                # up to this many seconds added at random (TRACKIE_POLL_JITTER)
+  max_backoff: 21600         # after failures the interval doubles, up to this (TRACKIE_MAX_BACKOFF)
+
+# Last good data per tracker, kept across restarts (TRACKIE_STATE_DIR)
+state_dir: /config/state
+
 trackers:
   ipt:
     enabled: true            # TRACKIE_IPT_ENABLED

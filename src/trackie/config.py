@@ -55,6 +55,10 @@ class TrackerConfig:
 class Config:
     trackers: dict[str, TrackerConfig]
     timeout_s: float
+    poll_interval_s: float
+    poll_jitter_s: float
+    max_backoff_s: float
+    state_dir: Path
 
 
 def _nested(data: dict[str, Any], dotted: str) -> Any:
@@ -138,7 +142,15 @@ def load_config(path: Path | None = None) -> Config:
             min_ratio=float(resolve(f"{env}_MIN_RATIO", data, f"{sect}.min_ratio", site.min_ratio)),
             announce_hosts=_hosts(resolve(f"{env}_ANNOUNCE_HOSTS", data, f"{sect}.announce_hosts")),
         )
+    config_dir = Path(os.environ.get("CONFIG_DIR", "/config"))
+    interval = float(resolve("TRACKIE_POLL_INTERVAL", data, "poll.interval", 45 * 60))
+    if interval < 10 * 60:
+        raise ConfigError("poll.interval must be at least 600 seconds; be kind to the trackers")
     return Config(
         trackers=trackers,
         timeout_s=float(resolve("TRACKIE_TIMEOUT", data, "http.timeout", 30)),
+        poll_interval_s=interval,
+        poll_jitter_s=float(resolve("TRACKIE_POLL_JITTER", data, "poll.jitter", 10 * 60)),
+        max_backoff_s=float(resolve("TRACKIE_MAX_BACKOFF", data, "poll.max_backoff", 6 * 3600)),
+        state_dir=Path(resolve("TRACKIE_STATE_DIR", data, "state_dir", config_dir / "state")),
     )
