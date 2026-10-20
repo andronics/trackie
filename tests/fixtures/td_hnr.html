@@ -1,0 +1,410 @@
+<!doctype html><html><head><!-- Have questions or comments about my code? Anyone that reports security holes or exploits on this site will be rewarded! Contact tdability [at] gmail and report the security issue! --><meta name="viewport" content="width=device-width, initial-scale=1"><script>(function(){try{var m=document.cookie.match(/(?:^|; )td_theme=([^;]+)/);if(m&&m[1]==='dark')document.documentElement.classList.add('theme-dark');}catch(e){}})();</script><script>(function(){try{var m=document.cookie.match(/(?:^|; )td_textscale=([0-9.]+)/);if(m){var s=parseFloat(m[1]);if(s>=1.25)document.documentElement.classList.add('td-text-xlarge');else if(s>=1.1)document.documentElement.classList.add('td-text-large');}}catch(e){}})();</script><script>(function(){try{if(document.cookie.indexOf('td_theme_used=1')!==-1)document.documentElement.classList.add('td-theme-used');}catch(e){}})();</script><title>Hit &amp; Run - TD</title><link rel="icon" href="/favicon.ico?v=2" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2"><link rel="stylesheet" href="/css/modern.css?v=212" type="text/css" /><!--	<link rel="stylesheet" href="https://v2.cloudstatic.net/rsrc/css/font-awesome.min.css"> --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><script src="https://v2.cloudstatic.net/js/jquery.min.js?"></script><script type="text/javascript" src="https://v2.cloudstatic.net/js/misc.js"></script><script type="text/javascript" src="https://v2.cloudstatic.net/js/bbcode.js"></script><script type="text/javascript" src="https://v2.cloudstatic.net/rsrc/js/start.js?11"></script><!--		<script type="text/javascript" src="https://v2.cloudstatic.net/rsrc/js/player.js"></script> --></head><body><header id="banner" style="max-width: 1200px;margin: 0 auto;"><div id="navBarOuter"><a class="headerColumn headerColumn--logo" href="/featured.php"><img src="/images/tdLogo.svg?v=2" id="headerLogo" alt="TorrentDay"/></a><nav id="navBarInner"><a class="headerColumn" href="/t"><i class="fa fa-cloud-download" aria-hidden="true"></i><span>Torrents</span></a><a class="headerColumn" href="/movies"><i class="fa fa-film" aria-hidden="true"></i><span>Movies</span></a><a class="headerColumn" href="/tv"><i class="fa fa-tv" aria-hidden="true"></i><span>TV</span></a><a class="headerColumn" href="/requests"><i class="fa fa-bell-o" aria-hidden="true"></i><span>Requests</span></a><a class="headerColumn" href="/upload.php"><i class="fa fa-upload" aria-hidden="true"></i><span>Upload</span></a><a class="headerColumn" href="/top-torrents.php"><i class="fa fa-fire" aria-hidden="true"></i><span>Top 15</span></a><a class="headerColumn headerColumn--iptv" href="/iptv"><i class="fa fa-desktop" aria-hidden="true"></i><span>IPTV</span></a><a class="headerColumn" href="/f"><i class="fa fa-comments-o" aria-hidden="true"></i><span>Forums</span></a><a class="headerColumn" href="/rules.php"><i class="fa fa-gavel" aria-hidden="true"></i><span>Rules</span></a><a class="headerColumn" href="/faq.php"><i class="fa fa-question-circle-o" aria-hidden="true"></i><span>FAQ</span></a><a class="headerColumn" href="/staff.php"><i class="fa fa-users" aria-hidden="true"></i><span>Staff</span></a><a class="headerColumn headerColumn--donate" href="/donate.php"><i class="fa fa-heart" aria-hidden="true"></i><span>Donate</span></a></nav><button type="button" id="navBurgerBtn" class="nav-burger" aria-label="Open menu" aria-expanded="false" onclick="tdmToggleNavBurger(this)"><span></span><span></span><span></span></button></div><script>function tdmUpdateTipText(){var tip=document.getElementById('tdmThemeTip');if(!tip)return;var d=document.documentElement.classList.contains('theme-dark');tip.innerHTML=d?'Try <b>Light Mode</b> <i class="fa fa-sun-o" aria-hidden="true"></i>':'Try <b>Dark Mode</b> <i class="fa fa-moon-o" aria-hidden="true"></i>';}function tdmToggleTheme(){var isDark=document.documentElement.classList.contains('theme-dark');var v=isDark?'light':'dark';document.cookie='td_theme='+v+';path=/;max-age=31536000;SameSite=Lax';document.cookie='td_theme_used=1;path=/;max-age=315360000;SameSite=Lax';document.documentElement.classList.toggle('theme-dark');try{fetch('/theme.php?t='+v,{credentials:'same-origin',keepalive:true}).catch(function(){});}catch(e){}location.reload();}document.addEventListener('DOMContentLoaded',function(){var isDark=document.documentElement.classList.contains('theme-dark');if(isDark){var i=document.querySelector('#tdmThemeBtn > .tdm-theme-btn__wrap > i');if(i)i.className='fa fa-sun-o';}tdmUpdateTipText();var tip=document.getElementById('tdmThemeTip');if(tip && !document.documentElement.classList.contains('td-theme-used')){tip.classList.add('show');setInterval(function(){tip.classList.add('shake');setTimeout(function(){tip.classList.remove('shake');},900);},5000);}tdmTextScaleInit();});function tdmTextScaleInit(){var m=document.cookie.match(/(?:^|; )td_textscale=([0-9.]+)/);var s=m?parseFloat(m[1]):1;tdmApplyTextScale(s,true);document.querySelectorAll('.tdm-text-menu__opt').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();tdmApplyTextScale(parseFloat(b.getAttribute('data-scale')),false);document.getElementById('tdmTextMenu').classList.remove('open');});});}function tdmApplyTextScale(scale,initial){var d=document.documentElement;d.classList.remove('td-text-large','td-text-xlarge');if(scale>=1.25)d.classList.add('td-text-xlarge');else if(scale>=1.1)d.classList.add('td-text-large');if(!initial)document.cookie='td_textscale='+scale+'; path=/; max-age=315360000; SameSite=Lax';document.querySelectorAll('.tdm-text-menu__opt').forEach(function(b){var bs=parseFloat(b.getAttribute('data-scale'));b.setAttribute('aria-pressed', Math.abs(bs-scale)<0.01 ? 'true' : 'false');});}function tdmTextMenuToggle(e){if(e){e.stopPropagation();e.preventDefault();}var m=document.getElementById('tdmTextMenu');if(!m)return;var was=m.classList.contains('open');m.classList.toggle('open');if(!was){setTimeout(function(){document.addEventListener('click',function hide(ev){if(!m.contains(ev.target)){m.classList.remove('open');document.removeEventListener('click',hide);}});},0);}}function tdmToggleNavBurger(btn){var nav = document.getElementById('navBarInner');if (!nav) return;var open = nav.classList.toggle('is-open');btn.setAttribute('aria-expanded', open ? 'true' : 'false');btn.classList.toggle('is-open', open);}document.addEventListener('click', function(e){var nav = document.getElementById('navBarInner');var btn = document.getElementById('navBurgerBtn');if (!nav || !btn || !nav.classList.contains('is-open')) return;if (e.target.closest('#navBurgerBtn')) return;if (e.target.closest('#navBarInner a')) {nav.classList.remove('is-open');btn.classList.remove('is-open');btn.setAttribute('aria-expanded', 'false');return;}if (!e.target.closest('#navBarInner')) {nav.classList.remove('is-open');btn.classList.remove('is-open');btn.setAttribute('aria-expanded', 'false');}});</script><div id="bannerHolder" style="background-image: url(https://v2.cloudstatic.net/img/banners/30865b530e661216d76004619996dfce.png);"></div><div id="userBar"><div id="userBarWrapper"><div class="ub-primary"><!-- Left: theme toggle + user + text-size -----------------><div id="tdmThemeBtn" class="tdm-theme-btn" onclick="tdmToggleTheme()" title="Toggle theme"><span class="tdm-theme-btn__wrap"><i class="fa fa-moon-o" aria-hidden="true"></i><span id="tdmThemeTip" class="tdm-theme-tip">Try <b>Dark Mode</b> <i class="fa fa-moon-o" aria-hidden="true"></i></span></span></div><div id="dropDownHdr" class="ub-user"><a href="/u/1000000" class="ub-user__name">fixtureuser</a><span id="tdmTextBtn" class="tdm-text-btn tdm-text-btn--userbar" onclick="tdmTextMenuToggle(event)" title="Text size"><span class="tdm-text-btn__wrap"><i class="fa fa-text-height" aria-hidden="true"></i></span><div id="tdmTextMenu" class="tdm-text-menu" role="menu" aria-label="Text size"><div class="tdm-text-menu__head">Text size</div><button type="button" class="tdm-text-menu__opt" data-scale="1"    aria-pressed="false"><span class="tdm-text-menu__dot" aria-hidden="true"></span><span class="tdm-text-menu__label">Normal</span></button><button type="button" class="tdm-text-menu__opt" data-scale="1.15" aria-pressed="false"><span class="tdm-text-menu__dot" aria-hidden="true"></span><span class="tdm-text-menu__label">Large</span></button><button type="button" class="tdm-text-menu__opt" data-scale="1.3"  aria-pressed="false"><span class="tdm-text-menu__dot" aria-hidden="true"></span><span class="tdm-text-menu__label">X-Large</span></button></div></span></div><!-- Center: personal stats ---------------------------------><div id="activityDiv" class="ub-stats"><span class="ub-stat"><span class="ub-stat__k">Ratio</span><span class="ub-stat__v">1.851</span></span><span class="ub-stat"><span class="ub-stat__k">Up</span><span class="ub-stat__v">890 GB</span></span><span class="ub-stat"><span class="ub-stat__k">Dn</span><span class="ub-stat__v">481 GB</span></span><a href="/peers?u=1000000" class="ub-peers" title="My active peers"><span class="ub-peers__seed"><i class="fa fa-arrow-up" aria-hidden="true"></i> 172</span><span class="ub-peers__leech"><i class="fa fa-arrow-down" aria-hidden="true"></i> 0</span></a></div><!-- Staff shortcuts — independent permission gates (matchesthe legacy header exactly: moderators see E/I/L/R/U,system operators see B/D; each block renders on its ownso a sysop-only user still gets their links even if theyare not also a moderator). --><!-- Right: messages + helpdesk ---------------------------><div id="msgDiv" class="ub-right"><a href="/m" class="ub-mail ub-mail--new" title="New messages"><i class="fa fa-envelope" aria-hidden="true"></i><span class="ub-mail__count">2</span></a><a href="/issues/new" class="ub-helpdesk"><i class="fa fa-life-ring" aria-hidden="true"></i><span>Help Desk</span></a></div></div><nav class="ub-menu" aria-label="User menu"><a href="/settings.php"                        class="ub-menu__item"><i class="fa fa-cog" aria-hidden="true"></i><span>Settings</span></a><a href="/invite"                              class="ub-menu__item ub-menu__item--accent"><i class="fa fa-envelope-open-o" aria-hidden="true"></i><span>Invites</span><span class="ub-menu__count">10</span></a><a href="/friends.php"                         class="ub-menu__item"><i class="fa fa-users" aria-hidden="true"></i><span>Friends</span></a><a href="/mybonus.php"                         class="ub-menu__item"><i class="fa fa-star" aria-hidden="true"></i><span>Bonus</span><span class="ub-menu__count">2639.7</span></a><a href="http://irc.torrentday.com?nick=fixtureuser" class="ub-menu__item"><i class="fa fa-comments" aria-hidden="true"></i><span>Chat</span></a><a href="/jokes.php"                           class="ub-menu__item"><i class="fa fa-smile-o" aria-hidden="true"></i><span>Jokes</span></a><a href="/rss"                                 class="ub-menu__item"><i class="fa fa-rss" aria-hidden="true"></i><span>RSS</span></a><a href="/forums.php?t=3560145"                class="ub-menu__item"><i class="fa fa-globe" aria-hidden="true"></i><span>Mirrors</span></a><span class="ub-menu__spacer"></span><a href="/logout.php"                          class="ub-menu__item ub-menu__item--logout"><i class="fa fa-sign-out" aria-hidden="true"></i><span>Logout</span></a></nav><div align=center><a href="/seed_back.php"><b style="color:yellow">Seeding Reminder: You have 13 Torrents that need Seeding!</b></a></div></div></div></header><a class="tdm-pm-banner" href="/m"><i class="fa fa-envelope"></i><span class="tdm-pm-banner__text">You have <b>2</b> new message(s)</span><i class="fa fa-chevron-right tdm-pm-banner__arrow"></i></a><div id="sectionWrapper"><br><main id="pageWrapper" style="max-width: 1200px; width: 100%; margin: 0 auto; position: relative;"><div class="tmS"><div align="center" style="padding-bottom: 5px">
+<a href="/donate.php" style="display:block;text-decoration:none;max-width:700px;"
+  onmouseover="this.querySelector('.donate-btn').style.animation='shake 0.5s ease-in-out';this.querySelector('.banner-wrap').style.borderColor='green'"
+  onmouseout="this.querySelector('.donate-btn').style.animation='';this.querySelector('.banner-wrap').style.borderColor='#E24B4A'">
+  <div class="banner-wrap" style="background:#fff;border:1.5px solid red;border-radius:12px;overflow:hidden;">
+    <div style="background:#E24B4A;padding:5px 1.25rem;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#fff"/></svg>
+        <span style="font-size:11px;font-weight:600;color:#fff;letter-spacing:0.04em;">Double credit offer now active</span>
+      </div>
+      <span style="font-size:11px;color:rgba(255,255,255,0.85);">Limited time only</span>
+    </div>
+    <div style="padding:1rem 1.25rem;display:flex;align-items:center;gap:14px;">
+      <div style="flex-shrink:0;text-align:center;animation:heartbeat 1.8s ease-in-out infinite;">
+        <div style="width:44px;height:44px;border-radius:50%;background:#FCEBEB;display:flex;align-items:center;justify-content:center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#A32D2D"/></svg>
+        </div>
+      </div>
+      <div style="width:1px;height:36px;background:#e5e5e5;flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap;">
+          <span style="font-size:14px;font-weight:600;color:#111;">Help us keep this community thriving</span>
+          <span style="background:#FCEBEB;color:#A32D2D;font-size:16px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;">2x credit</span>
+        </div>
+        <p align="left" style="font-size:13px;color:#666;margin:0;">Your support is doubled right now, and we truly appreciate every bit of it.</p>
+      </div>
+      <div style="flex-shrink:0;">
+        <div class="donate-btn">Donate now</div>
+      </div>
+    </div>
+  </div>
+</a>
+</div>
+
+<style>
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.25); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.15); }
+  60% { transform: scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  30% { transform: translateX(4px); }
+  45% { transform: translateX(-3px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+  90% { transform: translateX(2px); }
+}
+.donate-btn {
+  background: #E24B4A;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  display: inline-block;
+}
+</style></div><div class="tmS"><style>
+#ipr-midnight-ad,
+#ipr-midnight-ad *,
+#ipr-midnight-ad *::before,
+#ipr-midnight-ad *::after { box-sizing: border-box; }
+#ipr-midnight-ad {
+  width: 100%; max-width: none; margin: 18px auto; padding: 0 12px;
+  font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.5;
+  text-align: left; text-transform: none; letter-spacing: normal;
+  color: #eaf5ff; isolation: isolate;
+  container: ipr-midnight / inline-size;
+  -webkit-text-size-adjust: 100%;
+}
+#ipr-midnight-ad .ipr-shell {
+  position: relative; width: 100%; max-width: 1080px; margin: 0 auto;
+  overflow: hidden; border: 1px solid #254452; border-radius: 15px;
+  background: radial-gradient(ellipse at 88% 8%, #103144 0%, transparent 55%), #08151f;
+  box-shadow: 0 10px 28px rgba(2, 17, 28, .16);
+}
+#ipr-midnight-ad .ipr-main {
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: center; gap: 28px; padding: 21px 25px 20px;
+}
+#ipr-midnight-ad .ipr-copy,
+#ipr-midnight-ad .ipr-preview { min-width: 0; }
+#ipr-midnight-ad .ipr-eyebrow {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 8px;
+  color: #95e9f3; font-size: 11px; line-height: 1.3; font-weight: 800;
+  letter-spacing: 1.25px; text-transform: uppercase;
+}
+#ipr-midnight-ad .ipr-signal {
+  display: inline-block; width: 6px; height: 6px; flex: 0 0 6px;
+  border-radius: 2px; background: #65e4ed; box-shadow: 0 0 10px #65e4ed50;
+}
+#ipr-midnight-ad .ipr-title {
+  margin: 0 0 9px; padding: 0; border: 0; color: #f6fbff;
+  font-size: 33px; line-height: 1.05; letter-spacing: -1.15px; font-weight: 800;
+}
+#ipr-midnight-ad .ipr-title span { color: #71e7ee; }
+#ipr-midnight-ad .ipr-description {
+  max-width: 500px; margin: 0 0 13px; padding: 0; color: #bacdd9;
+  font-size: 13px; line-height: 1.5; font-weight: 400;
+}
+#ipr-midnight-ad .ipr-description strong { color: #f0f8fc; font-weight: 700; }
+#ipr-midnight-ad a.ipr-button {
+  display: inline-flex; justify-content: center; align-items: center; gap: 18px;
+  min-height: 42px; margin: 0; padding: 10px 17px; border: 1px solid #a4f7fc;
+  border-radius: 7px; background: #8aebf2; color: #07222b;
+  font-family: inherit; font-size: 13px; line-height: 1.4; font-weight: 800;
+  text-decoration: none; text-transform: none; letter-spacing: 0;
+  box-shadow: 0 3px 0 #06131a, 0 5px 15px #5ddee619;
+  transition: background .16s ease, transform .16s ease;
+}
+#ipr-midnight-ad a.ipr-button:visited { color: #07222b; }
+#ipr-midnight-ad a.ipr-button:hover { background: #b4f5fa; transform: translateY(-1px); }
+#ipr-midnight-ad a.ipr-button:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }
+#ipr-midnight-ad .ipr-button svg { display: block; width: 18px; height: 18px; flex: 0 0 18px; }
+#ipr-midnight-ad .ipr-preview {
+  overflow: hidden; border: 1px solid #345060; border-radius: 10px;
+  background: #11222d; box-shadow: 0 8px 22px #00000022;
+}
+#ipr-midnight-ad .ipr-browser {
+  display: flex; align-items: center; gap: 12px; min-height: 27px;
+  padding: 6px 12px; border-bottom: 1px solid #29424e; background: #162d3a;
+}
+#ipr-midnight-ad .ipr-dots { display: flex; align-items: center; gap: 4px; }
+#ipr-midnight-ad .ipr-dots i { display: block; width: 4px; height: 4px; border-radius: 50%; background: #8ea7b5; }
+#ipr-midnight-ad .ipr-url { color: #bccfda; font-size: 10px; line-height: 1.2; letter-spacing: .2px; }
+#ipr-midnight-ad .ipr-private { margin-left: auto; color: #83d5df; font-size: 9px; font-weight: 700; line-height: 1.2; }
+#ipr-midnight-ad .ipr-panel { padding: 12px 13px 11px; }
+#ipr-midnight-ad .ipr-identity { display: flex; align-items: center; gap: 9px; margin: 0 0 11px; }
+#ipr-midnight-ad .ipr-logo {
+  display: grid; place-items: center; width: 31px; height: 31px; flex: 0 0 31px;
+  border: 1px solid #64d7e6; border-radius: 7px; background: #8aebf2;
+  color: #102832; font-size: 18px; line-height: 1; font-weight: 800;
+}
+#ipr-midnight-ad .ipr-brand { display: block; color: #f3f9fd; font-size: 12px; line-height: 1.3; font-weight: 800; letter-spacing: .8px; }
+#ipr-midnight-ad .ipr-brand-note { display: block; margin-top: 2px; color: #a9c0ce; font-size: 10px; line-height: 1.3; }
+#ipr-midnight-ad .ipr-own { margin-left: auto; color: #98b3c3; font-size: 10px; line-height: 1.3; text-align: right; }
+#ipr-midnight-ad .ipr-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 0 0 10px; }
+#ipr-midnight-ad .ipr-tile { padding: 7px 8px; border: 1px solid #2b4555; border-radius: 5px; background: #0b1b25; }
+#ipr-midnight-ad .ipr-tile-label { display: block; color: #9fbcca; font-size: 9px; line-height: 1.25; font-weight: 600; letter-spacing: .8px; }
+#ipr-midnight-ad .ipr-tile-value { display: block; margin-top: 4px; color: #e3f7fc; font-size: 12px; line-height: 1.2; font-weight: 700; }
+#ipr-midnight-ad .ipr-flow { display: flex; align-items: center; justify-content: space-between; gap: 6px; color: #d1e5ed; font-size: 10px; line-height: 1.3; }
+#ipr-midnight-ad .ipr-paid { display: inline-flex; align-items: center; gap: 4px; }
+#ipr-midnight-ad .ipr-paid svg { display: block; width: 13px; height: 13px; color: #84e8dc; flex: 0 0 13px; }
+#ipr-midnight-ad .ipr-api { padding: 3px 9px; border: 1px solid #38616c; border-radius: 4px; color: #a2edf3; font-weight: 700; }
+#ipr-midnight-ad .ipr-flow-arrow { color: #7296a6; }
+#ipr-midnight-ad .ipr-active { color: #a5f0e4; font-weight: 700; }
+#ipr-midnight-ad .ipr-api-caption { margin: 7px 0 0; color: #acc3cf; font-size: 10px; line-height: 1.35; }
+#ipr-midnight-ad .ipr-footer {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 9px 25px; border-top: 1px solid #25414e; background: #0a1c27;
+}
+#ipr-midnight-ad .ipr-promise { color: #bed5e0; font-size: 11.5px; line-height: 1.4; }
+#ipr-midnight-ad .ipr-promise strong { color: #f4fbff; font-weight: 700; }
+#ipr-midnight-ad .ipr-wallet { color: #a6c0ce; font-size: 10.5px; line-height: 1.4; text-align: right; }
+@container ipr-midnight (max-width: 760px) {
+  #ipr-midnight-ad .ipr-main { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 22px; }
+  #ipr-midnight-ad .ipr-copy { text-align: center; }
+  #ipr-midnight-ad .ipr-eyebrow { justify-content: center; }
+  #ipr-midnight-ad .ipr-title { font-size: 31px; }
+  #ipr-midnight-ad .ipr-description { margin-right: auto; margin-left: auto; }
+  #ipr-midnight-ad .ipr-preview { width: 100%; max-width: 460px; margin: 0 auto; text-align: left; }
+  #ipr-midnight-ad .ipr-tiles { display: none; }
+  #ipr-midnight-ad .ipr-footer { flex-direction: column; gap: 5px; padding: 11px 18px; text-align: center; }
+  #ipr-midnight-ad .ipr-wallet { text-align: center; }
+}
+@media (max-width: 784px) {
+  #ipr-midnight-ad .ipr-main { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 22px; }
+  #ipr-midnight-ad .ipr-copy { text-align: center; }
+  #ipr-midnight-ad .ipr-eyebrow { justify-content: center; }
+  #ipr-midnight-ad .ipr-title { font-size: 31px; }
+  #ipr-midnight-ad .ipr-description { margin-right: auto; margin-left: auto; }
+  #ipr-midnight-ad .ipr-preview { width: 100%; max-width: 460px; margin: 0 auto; text-align: left; }
+  #ipr-midnight-ad .ipr-tiles { display: none; }
+  #ipr-midnight-ad .ipr-footer { flex-direction: column; gap: 5px; padding: 11px 18px; text-align: center; }
+  #ipr-midnight-ad .ipr-wallet { text-align: center; }
+}
+@container ipr-midnight (max-width: 380px) {
+  #ipr-midnight-ad .ipr-main { padding: 19px 15px 17px; }
+  #ipr-midnight-ad .ipr-title { font-size: 29px; }
+  #ipr-midnight-ad .ipr-tile { padding: 7px 6px; }
+  #ipr-midnight-ad .ipr-tile-value { font-size: 11px; }
+  #ipr-midnight-ad .ipr-own { max-width: 75px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #ipr-midnight-ad a.ipr-button { transition: none; }
+  #ipr-midnight-ad a.ipr-button:hover { transform: none; }
+}
+</style>
+<div id="ipr-midnight-ad">
+  <div class="ipr-shell" role="region" aria-label="IPTV Reseller Pro: start your own IPTV business">
+    <div class="ipr-main">
+      <div class="ipr-copy">
+        <div class="ipr-eyebrow"><span class="ipr-signal" aria-hidden="true"></span>IPTV Reseller Pro</div>
+        <h2 class="ipr-title">Own the IPTV brand.<br><span>Build the business.</span></h2>
+        <p class="ipr-description">Your domain. Your logo. Your colours. <strong>Create your own plans, set your prices</strong> and turn your audience into a growing business.</p>
+
+        <a class="ipr-button" href="https://mybunny.tv/client/white-label.php" target="_blank" rel="sponsored nofollow noopener noreferrer" aria-label="Start my IPTV business, opens in a new tab">Start My IPTV Business <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+
+      <div class="ipr-preview" role="group" aria-label="Illustration of your own branded customer panel">
+        <div class="ipr-browser">
+          <span class="ipr-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="ipr-url">yourbrand.example</span><span class="ipr-private">YOUR DOMAIN</span>
+        </div>
+        <div class="ipr-panel">
+          <div class="ipr-identity">
+            <div class="ipr-logo" aria-hidden="true">Y</div>
+            <div><span class="ipr-brand">YOUR BRAND</span><span class="ipr-brand-note">Your customer panel</span></div>
+            <span class="ipr-own">No BTV branding.</span>
+          </div>
+          <div class="ipr-tiles">
+            <div class="ipr-tile"><span class="ipr-tile-label">PLANS</span><span class="ipr-tile-value">Your choice</span></div>
+            <div class="ipr-tile"><span class="ipr-tile-label">PRICING</span><span class="ipr-tile-value">Your rates</span></div>
+            <div class="ipr-tile"><span class="ipr-tile-label">MARGINS</span><span class="ipr-tile-value">Your strategy</span></div>
+          </div>
+          <div class="ipr-flow"><span class="ipr-paid"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false"><path d="m3 8 3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Payment received</span><span class="ipr-flow-arrow" aria-hidden="true">&rarr;</span><span class="ipr-api">API</span><span class="ipr-flow-arrow" aria-hidden="true">&rarr;</span><span class="ipr-active">Line created</span></div>
+          <p class="ipr-api-caption">Full API access: connect your checkout to create &amp; renew lines.</p>
+        </div>
+      </div>
+    </div>
+    <div class="ipr-footer"><span class="ipr-promise"><strong>You grow the brand.</strong> We run the infrastructure.</span></div>
+  </div>
+</div></div><!--<div style="vertical-align: top;display: inline-block; position: absolute; width: 100px;"><a href="/donate.php"><lottie-player src="/pic/ani/crab.json" background="transparant" speed="0.7" style="width: 160px;" loop autoplay></lottie-player></a></div><div align="center"><div style="border: 2px solid #ff5722;display: inline-block;padding: 5px 20px 6px 20px;margin-bottom: 6px;"><a href=/iptv.php><b style="font-size:20px;color:#000">NFL :: Rams vs 49ers</b> <b style="color:red;font-size:14px"><b class="blink">&#128308;</b> LIVE</b></a></div></div>--><style>.blink {animation: blink 1.5s steps(1, end) infinite;}@keyframes blink {0% {opacity: 1;}50% {opacity: 0;}100% {opacity: 1;}}</style><!--<div align="center"><a href="/donate.php"><img src="/pic/du/1d.gif" border="0" /><br><b style='font-size:16px'>10% DISCOUNT on Cryptocurrencies donations!</b><b style="color:red;font-size:19px">1 Day left for Double Up offer!</b><br></a></div><br>--><link rel="stylesheet" href="/css/modern.css?v=209">
+<style>
+.tdm-seedback .tdm-hero + .tdm-card{margin-top: 18px;}
+.tdm-seedback .tdm-card + .tdm-card{margin-top: 18px;}
+.tdm-seedback .tdm-hero__title small{font-size: 12px; font-weight: 500; opacity: 0.75; letter-spacing: 0.25px; text-transform: uppercase; margin-left: 8px;}
+.tdm-seedback__stats{display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0 0;}
+.tdm-seedback__stat{background: var(--tdm-surface); border: 1px solid var(--tdm-border); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;}
+.tdm-seedback__stat-k{font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--tdm-text-muted); font-weight: 600;}
+.tdm-seedback__stat-v{font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--tdm-text);}
+.tdm-seedback__stat--warn .tdm-seedback__stat-v{color: #dc2626;}
+.tdm-seedback__stat--good .tdm-seedback__stat-v{color: #059669;}
+
+.tdm-seedback__vip{margin: 14px 0 0; padding: 12px 16px; border-radius: 10px; border: 1px solid #fbbf24; background: linear-gradient(180deg, rgba(251,191,36,0.10) 0%, rgba(217,119,6,0.06) 100%); color: var(--tdm-text); display: flex; gap: 12px; align-items: center;}
+.tdm-seedback__vip i{font-size: 18px; color: #d97706;}
+.tdm-seedback__vip a{color: #b45309; font-weight: 700; text-decoration: none;}
+.tdm-seedback__vip a:hover{text-decoration: underline;}
+
+.tdm-seedback__tablewrap{overflow-x: auto; margin: 0 -4px;}
+.tdm-seedback__table{width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px;}
+.tdm-seedback__table thead th{background: var(--tdm-surface-alt); color: var(--tdm-text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--tdm-border); white-space: nowrap;}
+.tdm-seedback__table thead th.num{text-align: right;}
+.tdm-seedback__table thead th.actions{text-align: right; width: 1%;}
+.tdm-seedback__table tbody td{padding: 10px 12px; border-bottom: 1px solid var(--tdm-border); vertical-align: middle;}
+.tdm-seedback__table tbody td.num{text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;}
+.tdm-seedback__table tbody td.gap{color: #dc2626; font-weight: 700;}
+.tdm-seedback__table tbody tr:hover td{background: var(--tdm-surface-alt);}
+.tdm-seedback__name{display: block; max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tdm-text); font-weight: 600; text-decoration: none;}
+.tdm-seedback__name:hover{color: var(--tdm-brand); text-decoration: underline;}
+.tdm-seedback__actions{display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;}
+.tdm-seedback__btn{display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; border: 1px solid transparent; cursor: pointer; white-space: nowrap; transition: filter 0.15s ease, transform 0.05s ease;}
+.tdm-seedback__btn:hover{filter: brightness(1.08);}
+.tdm-seedback__btn:active{transform: translateY(1px);}
+.tdm-seedback__btn--bonus{background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); color: #1a1a1a; border-color: #b45309;}
+.tdm-seedback__btn--credit{background: var(--tdm-surface); color: var(--tdm-text); border-color: var(--tdm-border);}
+
+.tdm-seedback__rules{display: grid; grid-template-columns: 1fr 1fr; gap: 14px;}
+.tdm-seedback__rules h3{margin: 0 0 8px; font-size: 14px; color: var(--tdm-text);}
+.tdm-seedback__rules ul{margin: 0; padding-left: 18px; line-height: 1.7; color: var(--tdm-text); font-size: 13px;}
+.tdm-seedback__rules li b{color: var(--tdm-brand);}
+
+.tdm-seedback__rules-link{display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; background: var(--tdm-surface-alt); color: var(--tdm-text); text-decoration: none; font-weight: 600; font-size: 13px; border: 1px solid var(--tdm-border);}
+.tdm-seedback__rules-link:hover{border-color: var(--tdm-brand); color: var(--tdm-brand);}
+
+@media (max-width: 768px){
+  .tdm-seedback__stats{grid-template-columns: 1fr;}
+  .tdm-seedback__rules{grid-template-columns: 1fr;}
+  .tdm-seedback__name{max-width: 220px;}
+  .tdm-seedback__actions{justify-content: flex-start;}
+}
+</style>
+
+<div class="tdm-page tdm-seedback">
+  <header class="tdm-hero tdm-hero--compact">
+    <div>
+      <h1 class="tdm-hero__title">
+        <i class="fa fa-exclamation-triangle" style="color:#f59e0b"></i>
+        Hit &amp; Run
+        <small>for <a href="/u/1000000" style="color:#fff">fixtureuser</a></small>
+      </h1>
+      <p class="tdm-hero__subtitle">Torrents you've downloaded but stopped seeding before reaching 1:1 ratio.</p>
+    </div>
+    <div class="tdm-hero__meta">
+      <a class="tdm-seedback__rules-link" href="/forums.php?t=2315820&amp;post=5060429#5060429">
+        <i class="fa fa-book"></i> H&amp;R Rules &amp; FAQ
+      </a>
+    </div>
+  </header>
+
+  <section class="tdm-card">
+    <div class="tdm-seedback__stats">
+      <div class="tdm-seedback__stat tdm-seedback__stat--warn">
+        <span class="tdm-seedback__stat-k"><i class="fa fa-exclamation-circle"></i> H&amp;R Torrents</span>
+        <span class="tdm-seedback__stat-v">2</span>
+      </div>
+      <div class="tdm-seedback__stat">
+        <span class="tdm-seedback__stat-k"><i class="fa fa-star"></i> Bonus Points</span>
+        <span class="tdm-seedback__stat-v">2,640</span>
+      </div>
+      <div class="tdm-seedback__stat tdm-seedback__stat--good">
+        <span class="tdm-seedback__stat-k"><i class="fa fa-arrow-up"></i> Surplus Upload Credit</span>
+        <span class="tdm-seedback__stat-v">409.52 GB</span>
+      </div>
+    </div>
+
+    <div class="tdm-seedback__vip">
+      <i class="fa fa-heart"></i>
+      <div>
+        <a href="/donate.php">VIP members</a> are exempt from H&amp;R logging while their donation is active.
+        Support the site to skip this list entirely.
+      </div>
+    </div>
+  </section>
+
+  <section class="tdm-card">
+    <div class="tdm-section-header">
+      <h2 class="tdm-section-header__title"><i class="fa fa-list"></i> H&amp;R Torrents (2)</h2>
+    </div>
+    <div class="tdm-seedback__tablewrap">
+      <table class="tdm-seedback__table">
+        <thead>
+          <tr>
+            <th>Torrent</th>
+            <th class="num">Downloaded</th>
+            <th class="num">Uploaded</th>
+            <th class="num">Gap</th>
+            <th class="num">Seeding Time</th>
+            <th class="actions">Clear</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="tr10241322">
+            <td>
+              <a class="tdm-seedback__name" href="/details.php?id=10241322" title="Tuner 2026 1080p BluRay REMUX AVC tmos-TRiToN">Tuner 2026 1080p BluRay REMUX AVC tmos-TRiToN</a>
+            </td>
+            <td class="num">2.33 GB</td>
+            <td class="num">0 KB</td>
+            <td class="num gap">2.33 GB</td>
+            <td class="num">0.0 h</td>
+            <td>
+              <div class="tdm-seedback__actions">
+                <button class="jxi tdm-seedback__btn tdm-seedback__btn--bonus" data-jxi="jxt=5&jxw=zap&o=c&i=10241322" title="Clear using Bonus Points">
+                  <i class="fa fa-star"></i> 233 BP
+                </button>
+                <button class="jxi tdm-seedback__btn tdm-seedback__btn--credit" data-jxi="jxt=5&jxw=zap&o=u&i=10241322" title="Clear using Upload Credit">
+                  <i class="fa fa-arrow-up"></i> 2.33 GB                </button>
+              </div>
+            </td>
+          </tr>
+          <tr id="tr9636354">
+            <td>
+              <a class="tdm-seedback__name" href="/details.php?id=9636354" title="Hot Milk 2025 1080p BluRay REMUX AVC DTS-HD-MA 5 1-UnKn0wn">Hot Milk 2025 1080p BluRay REMUX AVC DTS-HD-MA 5 1-UnKn0wn</a>
+            </td>
+            <td class="num">13.75 GB</td>
+            <td class="num">0 KB</td>
+            <td class="num gap">13.75 GB</td>
+            <td class="num">0.0 h</td>
+            <td>
+              <div class="tdm-seedback__actions">
+                <button class="jxi tdm-seedback__btn tdm-seedback__btn--bonus" data-jxi="jxt=5&jxw=zap&o=c&i=9636354" title="Clear using Bonus Points">
+                  <i class="fa fa-star"></i> 962 BP
+                </button>
+                <button class="jxi tdm-seedback__btn tdm-seedback__btn--credit" data-jxi="jxt=5&jxw=zap&o=u&i=9636354" title="Clear using Upload Credit">
+                  <i class="fa fa-arrow-up"></i> 13.75 GB                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="tdm-card">
+    <div class="tdm-section-header">
+      <h2 class="tdm-section-header__title"><i class="fa fa-info-circle"></i> Why am I seeing this?</h2>
+    </div>
+    <div style="padding: 4px 4px 8px;">
+      <p style="margin: 0 0 14px; color: var(--tdm-text);">
+        This list is a record of torrents you stopped seeding before reaching a <b>1:1</b> ratio.
+        It exists to help you keep your account in good standing &mdash; it is <b>not</b> a punishment.
+      </p>
+      <div class="tdm-seedback__rules">
+        <div>
+          <h3><i class="fa fa-check-circle"></i> Remove a torrent permanently</h3>
+          <ul>
+            <li>Seed it for <b>72 hours</b> &mdash; it resets and falls off the list.</li>
+            <li>Continue seeding until ratio reaches <b>1:1</b>.</li>
+            <li>Use the <b>Clear</b> button to pay the gap with Bonus Points or Upload Credit.</li>
+            <li><a href="/donate.php" style="color: var(--tdm-brand);">Become a VIP</a> &mdash; donors are exempt entirely.</li>
+          </ul>
+        </div>
+        <div>
+          <h3><i class="fa fa-lightbulb-o"></i> How should I seed?</h3>
+          <ul>
+            <li>Leave the torrent <b>running in your client</b> after the download completes.</li>
+            <li>Seed each torrent until its <b>individual ratio</b> is &ge; 1.</li>
+            <li>Prefer <b>active</b> torrents (ones with leechers waiting).</li>
+            <li>Sharing means <b>seeding</b>, not just downloading.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</main></div>

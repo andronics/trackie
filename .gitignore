@@ -26,3 +26,7 @@ tests/fixtures/raw/
 # Editors
 .vscode/
 .idea/
+
+# graphify knowledge graph (rebuilt locally by a git hook)
+.graphify/
+graphify-out/

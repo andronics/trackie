@@ -20,6 +20,16 @@ See the design doc: "qbt-rules: Private Tracker Integration Design".
 
 Saved tracker pages contain usernames, user IDs and IP addresses. Never commit raw pages; `data/` and `tests/fixtures/raw/` are git-ignored, and only scrubbed copies belong in `tests/fixtures/`. Cookies and API keys must never be committed or logged.
 
+To add or refresh a test page:
+
+```sh
+cp ~/saved-page.html tests/fixtures/raw/ipt_peers.html          # git-ignored
+scripts/scrub-fixture.py tests/fixtures/raw/ipt_peers.html tests/fixtures/ipt_peers.html
+scripts/check-personal-data.py tests/fixtures/ipt_peers.html
+```
+
+`scrub-fixture.py` finds the account's user ID, username and every public IP in the page itself and swaps in placeholders (`1000000`, `fixtureuser`, `192.0.2.x`).
+
 ## Development
 
 ```sh
