@@ -23,6 +23,7 @@ from trackie.sites import Site
 log = logging.getLogger(__name__)
 
 _PROFILE_LINK = re.compile(r'href="/u/(\d+)"')
+_USER_PARAM = re.compile(r"([?&;]u=)\d+")
 _PASSWORD_FIELD = re.compile(r"<input[^>]+type=[\"']?password", re.IGNORECASE)
 _CLOUDFLARE = ("cf-chl", "challenge-platform", "Just a moment...")
 
@@ -74,11 +75,13 @@ class SiteClient:
     def get(self, path: str) -> str:
         self._wait_turn()
         url = f"{self.cfg.base_url}{path}"
+        # Messages end up in logs and /health: keep the user ID out of them
+        shown = _USER_PARAM.sub(r"\1…", path)
         try:
             resp = self.session.get(url, timeout=self.timeout_s)
         except requests.RequestException as e:
             # The exception text can include the URL but never the headers
-            raise FetchError(f"{self.site.name}: {type(e).__name__} fetching {path}") from None
+            raise FetchError(f"{self.site.name}: {type(e).__name__} fetching {shown}") from None
         finally:
             self._last_request = self._clock()
 
@@ -86,13 +89,13 @@ class SiteClient:
         final_path = urlparse(resp.url).path.lower()
         if "login" in final_path or _PASSWORD_FIELD.search(body):
             raise AuthError(
-                f"{self.site.name}: got a login page for {path}; cookie rejected or expired"
+                f"{self.site.name}: got a login page for {shown}; cookie rejected or expired"
             )
         if any(marker in body for marker in _CLOUDFLARE):
-            raise FetchError(f"{self.site.name}: Cloudflare challenge on {path}")
+            raise FetchError(f"{self.site.name}: Cloudflare challenge on {shown}")
         if resp.status_code >= 400:
-            raise FetchError(f"{self.site.name}: HTTP {resp.status_code} for {path}")
-        log.debug("%s: fetched %s (%d bytes)", self.site.name, path, len(body))
+            raise FetchError(f"{self.site.name}: HTTP {resp.status_code} for {shown}")
+        log.debug("%s: fetched %s (%d bytes)", self.site.name, shown, len(body))
         return body
 
     def fetch(self) -> TrackerPages:

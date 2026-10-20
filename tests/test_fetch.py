@@ -116,3 +116,15 @@ def test_network_error_never_leaks_the_cookie(requests_mock: requests_mock.Mocke
         client("ipt").fetch()
     assert "SECRETVALUE" not in str(info.value)
     assert info.value.__cause__ is None
+
+
+def test_messages_never_contain_the_user_id(
+    page: Page, requests_mock: requests_mock.Mocker
+) -> None:
+    site = SITES["td"]
+    requests_mock.get(f"{site.base_url}{site.hnr_path}", text=page("td_hnr"))
+    requests_mock.get(f"{site.base_url}/peers?u=1000000", status_code=503)
+    with pytest.raises(FetchError) as info:
+        client("td").fetch()
+    assert "1000000" not in str(info.value)
+    assert "/peers?u=…" in str(info.value)
