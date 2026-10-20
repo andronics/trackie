@@ -3,7 +3,7 @@
 # ============================================================
 # Stage 1: Builder
 # ============================================================
-FROM python:3.11-slim AS builder
+FROM python:3.15-slim AS builder
 
 # Create virtual environment
 RUN python -m venv /opt/venv
@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # ============================================================
 # Stage 2: Runtime
 # ============================================================
-FROM python:3.11-slim
+FROM python:3.15-slim
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
