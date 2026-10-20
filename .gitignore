@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Secrets and personal data: cookies, API keys, raw saved tracker pages
+.env
+*.cookies
+cookies*.txt
+secrets/
+data/
+config/*.local.yml
+
+# Raw (unscrubbed) fixtures; only scrubbed copies are committed
+tests/fixtures/raw/
+
+# Editors
+.vscode/
+.idea/
