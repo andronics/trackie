@@ -71,7 +71,8 @@ def test_fetch_discovers_user_id_and_parses_both_pages(
 def test_configured_user_id_is_used(page: Page, requests_mock: requests_mock.Mocker) -> None:
     site = SITES["ipt"]
     requests_mock.get(f"{site.base_url}{site.hnr_path}", text=page("ipt_hnr"))
-    peers = requests_mock.get(f"{site.base_url}/peers?u=77", text=page("ipt_peers"))
+    peers_url = f"{site.base_url}/peers?u=77"  # personal-data: ok
+    peers = requests_mock.get(peers_url, text=page("ipt_peers"))
     assert client("ipt", user_id=77).fetch().user_id == 77
     assert peers.called_once
 
