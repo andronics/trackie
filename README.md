@@ -35,7 +35,7 @@ python scripts/check-personal-data.py
 | Workflow | Runs on | Does |
 | --- | --- | --- |
 | `ci.yml` | push to `main` and `dev/**`, PRs | personal-data guard, then ruff, black, mypy and pytest on Python 3.11 to 3.13 (all blocking), version consistency |
-| `docker-build.yml` | push to `main`, `dev/**`, `v*` tags | builds the image, smoke-tests `/health`, then pushes `linux/amd64` and `linux/arm64` to `ghcr.io/andronics/trackie` |
+| `docker-build.yml` | push to `main`, `dev/**`, `v*` tags | builds the image, smoke-tests `/health`, then pushes `linux/amd64` (all cluster nodes are amd64) to `ghcr.io/andronics/trackie` |
 | `docker-cleanup.yml` | daily | deletes `dev-*` image tags older than 7 days |
 | `release.yml` | `v*` tags | checks the tag matches the version files, writes `CHANGELOG.md`, creates the GitHub release |
 

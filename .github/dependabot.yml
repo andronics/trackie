@@ -18,5 +18,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # The base image's Python must stay within the CI test matrix, so only
+    # take patch-level image updates; move the minor version by hand
+    # together with ci.yml.
+    ignore:
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     commit-message:
       prefix: chore
