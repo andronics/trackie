@@ -11,6 +11,10 @@ Checks every file tracked by git (or the paths given) for:
   - any string listed in FIXTURE_DENYLIST (newline-separated, case-insensitive),
     meant to be supplied from a repo secret so the real values never appear here
 
+Version numbers after a product token ("Chrome/130.0.0.0") are not addresses.
+A line containing "personal-data: ok" is skipped by the IP and user-ID checks,
+for deliberate test values; the denylist still applies to it.
+
 Stdlib only, so CI can run it before installing anything.
 """
 
@@ -22,7 +26,8 @@ import sys
 from pathlib import Path
 
 PLACEHOLDER_USER_ID = "1000000"
-IPV4 = re.compile(r"(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?![\d.])")
+IPV4 = re.compile(r"(?<![\d.])(?<![A-Za-z]/)(\d{1,3}(?:\.\d{1,3}){3})(?![\d.])")
+ALLOW_MARKER = "personal-data: ok"
 USER_ID = re.compile(r"[?&;]u=(\d+)")
 SELF = Path(__file__).resolve()
 
@@ -48,6 +53,8 @@ def check(path: Path, denylist: list[str]) -> list[str]:
     problems = []
     lowered = text.lower()
     for lineno, line in enumerate(text.splitlines(), 1):
+        if ALLOW_MARKER in line:
+            continue
         for addr in IPV4.findall(line):
             if is_public(addr):
                 problems.append(f"{path}:{lineno}: public IPv4 address")

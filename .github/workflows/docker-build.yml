@@ -74,10 +74,15 @@ jobs:
 
       - name: Smoke test container
         run: |
-          docker run -d --name trackie-smoke -p 8080:8080 trackie:smoke
+          # No cookies in CI: start with both trackers disabled
+          docker run -d --name trackie-smoke -p 8080:8080 \
+            -e TRACKIE_IPT_ENABLED=false -e TRACKIE_TD_ENABLED=false \
+            trackie:smoke
           for i in $(seq 1 20); do
             if curl -fsS http://localhost:8080/health; then
               echo; echo "✓ /health responded"
+              curl -fsS http://localhost:8080/snapshot | python3 -c "import json,sys; assert 'unmatched' in json.load(sys.stdin)"
+              echo "✓ /snapshot responded"
               docker rm -f trackie-smoke >/dev/null
               exit 0
             fi
