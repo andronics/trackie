@@ -15,6 +15,7 @@ from typing import Any
 
 from trackie.config import Config
 from trackie.fetch import AuthError, FetchError, SiteClient, TrackerPages
+from trackie.matching import Matcher
 from trackie.parsers import ParseError
 from trackie.sites import SITES
 from trackie.snapshot import assemble, iso, tracker_section
@@ -64,9 +65,13 @@ class Poller:
         store: StateStore,
         client_factory: Callable[[str], SiteClient] | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
+        matcher: Matcher | None = None,
     ) -> None:
         self.config = config
         self.store = store
+        self.matcher = matcher
+        self._match_lock = threading.Lock()
+        self._match_due = matcher is not None
         self._now = now
         self._client_factory = client_factory or self._default_client
         self._clients: dict[str, SiteClient] = {}
@@ -140,6 +145,25 @@ class Poller:
                 return
             if state.next_poll is None or state.next_poll <= now:
                 self.poll(key)
+                self._match_due = self.matcher is not None
+        if self._match_due:
+            self.match()
+
+    def match(self) -> None:
+        """Match after each poll, so new tracker rows get hashes straight away."""
+        if self.matcher is None:
+            return
+        records = {}
+        for key, state in self.states.items():
+            with state.lock:
+                if state.section is not None:
+                    records[key] = state.section["records"]
+        try:
+            with self._match_lock:
+                self.matcher.refresh(records)
+        except Exception:  # noqa: BLE001 - matching must never stop polling
+            log.exception("matching failed")
+        self._match_due = False
 
     def _loop(self) -> None:
         while not self._stop.is_set():
@@ -162,7 +186,8 @@ class Poller:
             with state.lock:
                 if state.section is not None:
                     sections[key] = state.section
-        return assemble(sections, self._now())
+        with self._match_lock:
+            return assemble(sections, self._now(), self.matcher)
 
     def health(self) -> dict[str, Any]:
         trackers: dict[str, Any] = {}
@@ -184,4 +209,19 @@ class Poller:
                     "failures": state.failures,
                     "next_poll": iso(state.next_poll) if state.next_poll else None,
                 }
-        return {"status": "ok" if healthy else "degraded", "trackers": trackers}
+        result: dict[str, Any] = {
+            "status": "ok" if healthy else "degraded",
+            "trackers": trackers,
+        }
+        if self.matcher is not None:
+            report = self.matcher.report
+            result["matching"] = {
+                "last_run": report.ran_at,
+                "errors": report.errors,
+                "new_last_run": dict(report.new),
+                "mappings": {k: len(v) for k, v in self.matcher.state.mappings.items()},
+                "hosts": dict(self.matcher.state.hosts),
+            }
+            if report.errors:
+                result["status"] = "degraded"
+        return result

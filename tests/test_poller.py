@@ -163,3 +163,33 @@ def test_persisted_section_survives_restart(tmp_path: Path, good: TrackerPages) 
     second, _ = make(tmp_path, [FetchError("down")])
     assert len(second.snapshot()["unmatched"]) == 174
     assert second.health()["trackers"]["td"]["cookie_ok"] is None
+
+
+def test_matching_runs_after_a_poll_and_feeds_snapshot(tmp_path: Path, good: TrackerPages) -> None:
+    from trackie.matching import MappingStore, Matcher
+    from trackie.sources import Grab
+
+    class History:
+        name = "sonarr"
+
+        def grabs(self, since: str | None = None) -> list[Grab]:
+            return [
+                Grab(
+                    "2026-10-20",
+                    "https://www.torrentday.com/details.php?id=10224043",
+                    "x",
+                    "f" * 40,
+                    "sonarr",
+                )
+            ]
+
+    cfg = app_config(tmp_path)
+    cfg.trackers.pop("ipt")
+    fake = FakeClient([good])
+    m = Matcher(MappingStore(tmp_path / "mappings.json"), arr=[History()])
+    poller = Poller(cfg, StateStore(tmp_path), client_factory=lambda key: fake, now=Clock(), matcher=m)  # type: ignore[arg-type,return-value]
+    poller.run_due()
+    snap = poller.snapshot()
+    assert snap["torrents"]["f" * 40]["tracker_id"] == 10224043
+    assert len(snap["unmatched"]) == 173
+    assert poller.health()["matching"]["mappings"] == {"td": 1}

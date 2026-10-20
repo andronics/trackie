@@ -87,3 +87,37 @@ def test_repr_hides_cookie(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setenv("TRACKIE_TD_ENABLED", "false")
     cfg = load_config(tmp_path / "missing.yml")
     assert "SECRETVALUE" not in repr(cfg)
+
+
+def test_sources(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    key = tmp_path / "sonarr_key"
+    key.write_text("k" * 32)
+    monkeypatch.setenv("TRACKIE_SONARR_API_KEY_FILE", str(key))
+    monkeypatch.setenv("TRACKIE_PROWLARR_API_KEY", "p" * 32)
+    path = write(
+        tmp_path,
+        """
+trackers: {ipt: {enabled: false}, td: {enabled: false}}
+sources:
+  qbittorrent: {url: "http://qbt:8080/"}
+  sonarr: {url: "http://sonarr:8989"}
+  readarr: {url: "http://readarr:8787"}
+  prowlarr: {url: "http://prowlarr:9696"}
+""",
+    )
+    monkeypatch.setenv("TRACKIE_READARR_API_KEY", "r" * 32)
+    cfg = load_config(path)
+    assert cfg.qbittorrent is not None and cfg.qbittorrent.url == "http://qbt:8080"
+    assert [(a.name, a.api_version) for a in cfg.arr_apps] == [("sonarr", "v3"), ("readarr", "v1")]
+    assert cfg.arr_apps[0].api_key == "k" * 32
+    assert cfg.prowlarr is not None and cfg.prowlarr.api_version == "v1"
+    assert "k" * 32 not in repr(cfg)
+
+
+def test_app_url_without_key_is_an_error(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        "trackers: {ipt: {enabled: false}, td: {enabled: false}}\nsources: {radarr: {url: http://r}}\n",
+    )
+    with pytest.raises(ConfigError, match="TRACKIE_RADARR_API_KEY_FILE"):
+        load_config(path)

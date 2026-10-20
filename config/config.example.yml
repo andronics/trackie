@@ -17,6 +17,26 @@ poll:
   jitter: 600                # up to this many seconds added at random (TRACKIE_POLL_JITTER)
   max_backoff: 21600         # after failures the interval doubles, up to this (TRACKIE_MAX_BACKOFF)
 
+# Where trackie learns which qBittorrent hash belongs to which tracker ID.
+# All read-only. An app is used when its url is set. API keys and the
+# qBittorrent password are secrets: use the _FILE variables, e.g.
+#   TRACKIE_SONARR_API_KEY_FILE=/run/secrets/sonarr_api_key
+sources:
+  qbittorrent:
+    url: http://qbittorrent:8080     # TRACKIE_QBITTORRENT_URL
+    # username: admin                # only when qBittorrent requires a login
+    # password via TRACKIE_QBITTORRENT_PASSWORD_FILE
+  sonarr:
+    url: http://sonarr:8989          # TRACKIE_SONARR_URL, TRACKIE_SONARR_API_KEY_FILE
+  radarr:
+    url: http://radarr:7878
+  # readarr:
+  #   url: http://readarr:8787
+  # lidarr:
+  #   url: http://lidarr:8686
+  prowlarr:
+    url: http://prowlarr:9696        # covers grabs whose *arr history was deleted
+
 # Last good data per tracker, kept across restarts (TRACKIE_STATE_DIR)
 state_dir: /config/state
 
@@ -31,7 +51,8 @@ trackers:
     hnr_limit: 40            # H&R torrents allowed before a warning
     hnr_grace: 432000        # seconds unseeded before a torrent counts (120 h)
     min_ratio: 1.0
-    # Hostnames in qBittorrent's tracker URLs that identify this site
+    # Hostnames in qBittorrent's tracker URLs that identify this site.
+    # Usually unnecessary: trackie learns them from exact matches.
     announce_hosts: []
 
   td:

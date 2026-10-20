@@ -3,6 +3,7 @@ from dataclasses import replace
 from typing import Any
 
 from trackie.fetch import TrackerPages
+from trackie.matching import Mapping
 from trackie.parsers import AccountStats, HnrPage, HnrRow, PeerRow, PeersPage, ipt, td
 from trackie.snapshot import assemble, tracker_section
 
@@ -134,3 +135,37 @@ def test_assemble_shape() -> None:
     assert snap["accounts"]["td"]["ratio"] == 0.5
     assert snap["torrents"] == {}
     assert [r["tracker_id"] for r in snap["unmatched"]] == [1]
+
+
+class FakeMappings:
+    def __init__(self, table: dict[tuple[str, int], str]) -> None:
+        self.table = table
+
+    def lookup(self, tracker: str, tracker_id: int) -> Any:
+        h = self.table.get((tracker, tracker_id))
+        return None if h is None else Mapping(h, "exact", "sonarr", "2026-10-20T00:00:00Z")
+
+    def hosts_for(self, tracker: str) -> list[str]:
+        return ["learned.example"]
+
+
+def test_assemble_partitions_by_mapping() -> None:
+    section = tracker_section(pages([peer(1), peer(2), peer(3)], []), tracker_cfg("td"))
+    # 3 maps to the same hash as 1: only the first keeps it
+    snap = assemble({"td": section}, T0, FakeMappings({("td", 1): "a" * 40, ("td", 3): "a" * 40}))
+    assert list(snap["torrents"]) == ["a" * 40]
+    t = snap["torrents"]["a" * 40]
+    assert (t["tracker_id"], t["hash"], t["match"], t["match_source"]) == (
+        1,
+        "a" * 40,
+        "exact",
+        "sonarr",
+    )
+    assert sorted(r["tracker_id"] for r in snap["unmatched"]) == [2, 3]
+    assert all(r["hash"] is None for r in snap["unmatched"])
+
+
+def test_assemble_merges_learned_announce_hosts() -> None:
+    section = tracker_section(pages([], []), tracker_cfg("td", announce_hosts=("conf.example",)))
+    snap = assemble({"td": section}, T0, FakeMappings({}))
+    assert snap["accounts"]["td"]["announce_hosts"] == ["conf.example", "learned.example"]

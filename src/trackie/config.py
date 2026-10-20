@@ -51,6 +51,33 @@ class TrackerConfig:
         )
 
 
+# Apps with grab history, and the API version each speaks
+ARR_APPS = {"sonarr": "v3", "radarr": "v3", "readarr": "v1", "lidarr": "v1"}
+
+
+@dataclass(frozen=True)
+class AppConfig:
+    """An *arr app or Prowlarr: read-only API access."""
+
+    name: str
+    url: str
+    api_key: str
+    api_version: str
+
+    def __repr__(self) -> str:
+        return f"AppConfig(name={self.name!r}, url={self.url!r})"
+
+
+@dataclass(frozen=True)
+class QbtConfig:
+    url: str
+    username: str
+    password: str
+
+    def __repr__(self) -> str:
+        return f"QbtConfig(url={self.url!r}, username={'set' if self.username else 'unset'})"
+
+
 @dataclass(frozen=True)
 class Config:
     trackers: dict[str, TrackerConfig]
@@ -59,6 +86,9 @@ class Config:
     poll_jitter_s: float
     max_backoff_s: float
     state_dir: Path
+    qbittorrent: QbtConfig | None = None
+    arr_apps: tuple[AppConfig, ...] = ()
+    prowlarr: AppConfig | None = None
 
 
 def _nested(data: dict[str, Any], dotted: str) -> Any:
@@ -142,6 +172,32 @@ def load_config(path: Path | None = None) -> Config:
             min_ratio=float(resolve(f"{env}_MIN_RATIO", data, f"{sect}.min_ratio", site.min_ratio)),
             announce_hosts=_hosts(resolve(f"{env}_ANNOUNCE_HOSTS", data, f"{sect}.announce_hosts")),
         )
+
+    def app(name: str, api_version: str) -> AppConfig | None:
+        env, sect = f"TRACKIE_{name.upper()}", f"sources.{name}"
+        url = resolve(f"{env}_URL", data, f"{sect}.url")
+        if not url:
+            return None
+        api_key = resolve(f"{env}_API_KEY", data, f"{sect}.api_key")
+        if not api_key:
+            raise ConfigError(f"{name} has a URL but no API key: set {env}_API_KEY_FILE")
+        return AppConfig(name, str(url).rstrip("/"), str(api_key), api_version)
+
+    qbt_url = resolve("TRACKIE_QBITTORRENT_URL", data, "sources.qbittorrent.url")
+    qbittorrent = (
+        QbtConfig(
+            url=str(qbt_url).rstrip("/"),
+            username=str(
+                resolve("TRACKIE_QBITTORRENT_USERNAME", data, "sources.qbittorrent.username", "")
+            ),
+            password=str(
+                resolve("TRACKIE_QBITTORRENT_PASSWORD", data, "sources.qbittorrent.password", "")
+            ),
+        )
+        if qbt_url
+        else None
+    )
+
     config_dir = Path(os.environ.get("CONFIG_DIR", "/config"))
     interval = float(resolve("TRACKIE_POLL_INTERVAL", data, "poll.interval", 45 * 60))
     if interval < 10 * 60:
@@ -153,4 +209,7 @@ def load_config(path: Path | None = None) -> Config:
         poll_jitter_s=float(resolve("TRACKIE_POLL_JITTER", data, "poll.jitter", 10 * 60)),
         max_backoff_s=float(resolve("TRACKIE_MAX_BACKOFF", data, "poll.max_backoff", 6 * 3600)),
         state_dir=Path(resolve("TRACKIE_STATE_DIR", data, "state_dir", config_dir / "state")),
+        qbittorrent=qbittorrent,
+        arr_apps=tuple(a for name, v in ARR_APPS.items() if (a := app(name, v)) is not None),
+        prowlarr=app("prowlarr", "v1"),
     )

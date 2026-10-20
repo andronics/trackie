@@ -10,11 +10,12 @@ record. Status, in order of precedence:
 
 A torrent on neither page is absent: unknown, never assumed satisfied.
 
-Records stay in "unmatched" until matching to qBittorrent hashes exists.
+Matched records are keyed by qBittorrent hash under "torrents"; the rest
+stay in "unmatched".
 """
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Protocol
 
 from trackie.config import TrackerConfig
 from trackie.fetch import TrackerPages
@@ -92,12 +93,45 @@ def tracker_section(pages: TrackerPages, cfg: TrackerConfig) -> dict[str, Any]:
     }
 
 
-def assemble(sections: dict[str, dict[str, Any]], now: datetime) -> dict[str, Any]:
-    """The /snapshot document from each tracker's last good section."""
+class MappingLookup(Protocol):
+    def lookup(self, tracker: str, tracker_id: int) -> Any: ...
+
+    def hosts_for(self, tracker: str) -> list[str]: ...
+
+
+def assemble(
+    sections: dict[str, dict[str, Any]], now: datetime, mappings: MappingLookup | None = None
+) -> dict[str, Any]:
+    """The /snapshot document from each tracker's last good section.
+
+    Records with a known hash go under torrents[hash]; the rest stay in
+    unmatched, visible but never attached to a torrent.
+    """
+    torrents: dict[str, dict[str, Any]] = {}
+    unmatched: list[dict[str, Any]] = []
+    accounts: dict[str, dict[str, Any]] = {}
+    for key, section in sections.items():
+        account = dict(section["account"])
+        if mappings is not None:
+            account["announce_hosts"] = sorted(
+                set(account["announce_hosts"]) | set(mappings.hosts_for(key))
+            )
+        accounts[key] = account
+        for rec in section["records"]:
+            m = mappings.lookup(key, rec["tracker_id"]) if mappings is not None else None
+            if m is None or m.hash in torrents:
+                unmatched.append({**rec, "hash": None, "match": None, "match_source": None})
+            else:
+                torrents[m.hash] = {
+                    **rec,
+                    "hash": m.hash,
+                    "match": m.match,
+                    "match_source": m.source,
+                }
     return {
         "generated_at": iso(now),
         "fetched_at": {key: s["fetched_at"] for key, s in sections.items()},
-        "accounts": {key: s["account"] for key, s in sections.items()},
-        "torrents": {},
-        "unmatched": [r for s in sections.values() for r in s["records"]],
+        "accounts": accounts,
+        "torrents": torrents,
+        "unmatched": unmatched,
     }
