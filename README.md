@@ -39,9 +39,9 @@ Every setting is in [`config/config.example.yml`](config/config.example.yml). Re
 
 Keep `/config/state/mappings.json` on a volume: it holds every tracker ID to hash mapping ever found, and the histories it came from do not keep them forever.
 
-## Design
+## Documentation
 
-See the design doc: "qbt-rules: Private Tracker Integration Design".
+The [wiki](https://github.com/andronics/trackie/wiki) covers setup, every snapshot field, matching, configuration, troubleshooting and development. Start with the [Quick Start](https://github.com/andronics/trackie/wiki/Quick-Start).
 
 ## Data handling
 
