@@ -1,0 +1,41 @@
+# Git files
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+venv/
+.venv/
+
+# Testing
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Personal data and secrets: never in an image
+data/
+secrets/
+.env
+*.cookies
+cookies*.txt
+config/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+scripts/
+
+# Misc
+*.log
+.DS_Store

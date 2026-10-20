@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'dev/**'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  personal-data:
+    name: Personal Data Guard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # FIXTURE_DENYLIST is an optional repo secret: one username / user ID /
+      # IP per line. It keeps the real values out of the repo while still
+      # failing the build if any of them leak into a committed file.
+      - name: Scan tracked files for personal data
+        env:
+          FIXTURE_DENYLIST: ${{ secrets.FIXTURE_DENYLIST }}
+        run: python scripts/check-personal-data.py
+
+  test:
+    name: Test Python Code
+    runs-on: ubuntu-latest
+    needs: personal-data
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package with dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          echo "✓ Package and dependencies installed"
+
+      - name: Test module imports
+        run: |
+          python -c "from trackie import __version__; print('✓ trackie')"
+          python -c "from trackie.app import create_app; print('✓ trackie.app')"
+          echo "✓ All modules import successfully"
+
+      # Unlike qbt-rules these are blocking: the codebase starts clean, so it
+      # stays clean instead of accumulating a backlog.
+      - name: Lint with ruff
+        run: ruff check src/ tests/ scripts/
+
+      - name: Check code formatting
+        run: black --check src/ tests/ scripts/
+
+      - name: Type check with mypy
+        run: mypy src/trackie
+
+      - name: Run tests
+        run: |
+          pytest -v -m "not live"
+          echo "✓ All tests passed"
+
+      - name: Check for common issues
+        run: |
+          # Check for print statements (should use logger)
+          if grep -r "print(" src/ --include="*.py" | grep -v "# print OK" | grep -v "__pycache__"; then
+            echo "Warning: Found print() statements. Consider using logger instead."
+          fi
+
+          # Check for hardcoded credentials (cookies, API keys, passkeys)
+          if grep -rEi "(password|token|secret|key|cookie|passkey|uid|pass)\s*=\s*['\"][^'\"]{8,}" src/ --include="*.py"; then
+            echo "Error: Potential hardcoded credentials found!"
+            exit 1
+          fi
+
+          echo "✓ No common issues found"
+
+  validate-version:
+    name: Validate Version Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check version format and consistency
+        run: |
+          FILE_VERSION=$(grep -oP '__version__ = "\K[^"]+' src/trackie/__version__.py)
+          TOML_VERSION=$(grep -oP '^version = "\K[^"]+' pyproject.toml)
+          echo "Current version: $FILE_VERSION"
+
+          # Validate semver format
+          if ! echo "$FILE_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+            echo "Error: Version must follow semantic versioning (1.2.3 or 1.2.3-beta.1)"
+            exit 1
+          fi
+
+          if [ "$FILE_VERSION" != "$TOML_VERSION" ]; then
+            echo "::error::src/trackie/__version__.py ($FILE_VERSION) and pyproject.toml ($TOML_VERSION) disagree"
+            exit 1
+          fi
+
+          echo "✓ Version format is valid"
