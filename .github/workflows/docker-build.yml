@@ -67,7 +67,7 @@ jobs:
       # Build the native image first and check it actually serves /health
       # before publishing anything. The multi-arch push below reuses the cache.
       - name: Build image for smoke test
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           load: true
@@ -91,7 +91,7 @@ jobs:
           exit 1
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64,linux/arm64
