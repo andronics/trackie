@@ -1,7 +1,7 @@
 [project]
 name = "trackie"
 # Owned by release-please: never edit by hand (see the wiki's Release-Process page).
-version = "0.1.0"
+version = "0.2.0"
 description = "Scrapes private tracker stats (IPTorrents, TorrentDay) and serves them as a JSON snapshot"
 readme = "README.md"
 requires-python = ">=3.13"
