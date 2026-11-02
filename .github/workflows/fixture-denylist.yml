@@ -1,0 +1,27 @@
+# Project-owned (trackie), not a template's. Runs base's personal-data guard with the
+# FIXTURE_DENYLIST secret, trackie's name for its denylist before the templates.
+# base-ci.yml's guard reads PERSONAL_DATA_DENYLIST instead: once that secret holds the same
+# lines, delete FIXTURE_DENYLIST and this file.
+name: Fixture denylist
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  denylist:
+    name: Fixture denylist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # One username, user ID or IP per line, kept out of the repository
+      - name: Scan tracked files
+        env:
+          PERSONAL_DATA_DENYLIST: ${{ secrets.FIXTURE_DENYLIST }}
+        run: python3 scripts/check-personal-data.py

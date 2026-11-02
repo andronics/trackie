@@ -1,0 +1,37 @@
+# trackie under Docker Compose. Template-owned skeleton; see the wiki's
+# Deployment page.
+#
+#   docker compose -f contrib/docker/compose.yml up -d
+#   docker exec trackie trackie config     # effective config and sources
+#
+# Config: ./config/config.yaml (from contrib/trackie.example.yaml), mounted
+# read-only. Secrets: as files under ./secrets, passed with TRACKIE_<KEY>_FILE.
+
+services:
+  trackie:
+    image: ghcr.io/andronics/trackie:0.0.0 # x-release-please-version
+    container_name: trackie
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:8080:8080"   # loopback only: put a reverse proxy in front
+
+    volumes:
+      - ./config:/etc/trackie:ro
+      - ./state:/var/lib/trackie
+      # - ./secrets:/run/secrets/trackie:ro
+
+    environment:
+      TZ: "Europe/London"
+      # TRACKIE_LOG_LEVEL: DEBUG
+      # TRACKIE_SOME_TOKEN_FILE: /run/secrets/trackie/some-token
+
+    # Hardening: read-only root, no new privileges, only the capabilities it needs
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+
+    # The image's HEALTHCHECK polls /health

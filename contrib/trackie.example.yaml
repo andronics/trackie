@@ -1,0 +1,72 @@
+# trackie configuration: the settings most people change, with their defaults.
+#
+# Copy to /etc/trackie/config.yaml (or point TRACKIE_CONFIG / --config
+# at it). Every key can also be set as an environment variable,
+# TRACKIE_<KEY> (dots become underscores: ipt.cookie is TRACKIE_IPT_COOKIE),
+# or read from a file with TRACKIE_<KEY>_FILE. Order: _FILE, variable, this
+# file, default. Full reference: the wiki's In-Depth-Configuration page.
+#
+# Cookies, API keys and the qBittorrent password are secrets. Keep them out
+# of this file and give each one as a file:
+#   TRACKIE_IPT_COOKIE_FILE=/run/secrets/ipt_cookie
+#   TRACKIE_TD_COOKIE_FILE=/run/secrets/td_cookie
+#   TRACKIE_SONARR_API_KEY_FILE=/run/secrets/sonarr_api_key
+# (a cookie is the Cookie header of a logged-in browser session).
+
+# DEBUG, INFO, WARNING or ERROR
+log_level: INFO
+
+listen:
+  host: 0.0.0.0
+  port: 8080
+
+# Each tracker's last good data and the ID-to-hash mappings. Keep it on a
+# volume: the mappings come from histories that don't keep them forever.
+# Unset, and /config/state exists (the volume before 0.2), that is used.
+state_dir: /var/lib/trackie
+
+timeout: 30               # seconds per HTTP request
+
+poll:
+  interval: 2700          # seconds between fetches of each tracker, at least 600
+  jitter: 600             # up to this many seconds added at random
+  max_backoff: 21600      # after failures the interval doubles, up to this
+
+# Where trackie learns which qBittorrent hash belongs to which tracker ID.
+# All read-only. An app is used when its url is set.
+qbittorrent:
+  url: http://qbittorrent:8080
+  # username: admin       # only when qBittorrent requires a login
+sonarr:
+  url: http://sonarr:8989
+radarr:
+  url: http://radarr:7878
+# readarr:
+#   url: http://readarr:8787
+# lidarr:
+#   url: http://lidarr:8686
+prowlarr:
+  url: http://prowlarr:9696   # covers grabs whose *arr history was deleted
+
+ipt:
+  enabled: true
+  base_url: https://iptorrents.com
+  # user_id: 0            # 0 reads it from the site
+  request_gap: 5          # minimum seconds between requests to the site
+  # Site rules (IPT H&R rules, 2026-10-20)
+  hnr_limit: 40           # H&R torrents allowed before a warning
+  hnr_grace: 432000       # seconds unseeded before a torrent counts (120 h)
+  min_ratio: 1.0
+  # Host names in qBittorrent's tracker URLs that are this site. Usually
+  # unneeded: trackie learns them from exact matches.
+  announce_hosts: []
+
+td:
+  enabled: true
+  base_url: https://www.torrentday.com
+  request_gap: 5
+  # TD H&R rules, 2026-10-20
+  hnr_limit: 40
+  hnr_grace: 259200       # 72 h
+  min_ratio: 0.3
+  announce_hosts: []

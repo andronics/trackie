@@ -1,6 +1,9 @@
-# Git files
+# Only what the Dockerfile copies needs to be in the build context.
+
+# Git
 .git/
 .gitignore
+.gitattributes
 
 # Python
 __pycache__/
@@ -8,34 +11,42 @@ __pycache__/
 *.egg-info/
 build/
 dist/
-venv/
 .venv/
+venv/
 
-# Testing
-tests/
+# Tooling
 .pytest_cache/
-.coverage
-htmlcov/
 .mypy_cache/
 .ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.graphify/
+graphify-out/
 
-# Personal data and secrets: never in an image
-data/
-secrets/
-.env
-*.cookies
-cookies*.txt
-config/
+# IDEs and AI assistants
+.vscode/
+.idea/
+.cursor/
+.claude/
+*.swp
+*~
 
-# Documentation
+# Not needed in the image
+tests/
+scripts/
 docs/
 *.md
 !README.md
-
-# CI/CD
+contrib/docker/
+contrib/k8s/
+contrib/systemd/
 .github/
-scripts/
 
-# Misc
+# Secrets and local state: never in an image
+.env
+.env.*
+secrets/
+data/
 *.log
 .DS_Store

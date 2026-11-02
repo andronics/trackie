@@ -40,7 +40,8 @@ def _record(
     if peer is not None:
         uploaded, downloaded = peer.uploaded_b, peer.downloaded_b
     else:
-        assert hnr is not None
+        if hnr is None:  # the caller joins rows that are on at least one page
+            raise ValueError(f"{tracker} {tracker_id}: on neither page")
         uploaded, downloaded = hnr.uploaded_b, hnr.downloaded_b
 
     return {

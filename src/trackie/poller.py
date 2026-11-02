@@ -11,7 +11,7 @@ import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Protocol
 
 from trackie.config import Config
 from trackie.fetch import AuthError, FetchError, SiteClient, TrackerPages
@@ -28,6 +28,12 @@ log = logging.getLogger(__name__)
 SUSPECT_DROP_FROM = 5
 
 
+class Fetcher(Protocol):
+    """What the poller needs of a site client (SiteClient; a fake in tests)."""
+
+    def fetch(self) -> TrackerPages: ...
+
+
 class SuspectError(Exception):
     """The fetch parsed, but the result is implausible next to the last good one."""
 
@@ -39,7 +45,7 @@ class TrackerState:
     last_attempt: datetime | None = None
     last_success: datetime | None = None
     last_error: str | None = None
-    error_kind: str | None = None  # auth | fetch | parse | suspect
+    error_kind: str | None = None  # auth | fetch | parse | suspect | error | config
     failures: int = 0
     next_poll: datetime | None = None
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
@@ -63,7 +69,7 @@ class Poller:
         self,
         config: Config,
         store: StateStore,
-        client_factory: Callable[[str], SiteClient] | None = None,
+        client_factory: Callable[[str], Fetcher] | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
         matcher: Matcher | None = None,
     ) -> None:
@@ -74,26 +80,36 @@ class Poller:
         self._match_due = matcher is not None
         self._now = now
         self._client_factory = client_factory or self._default_client
-        self._clients: dict[str, SiteClient] = {}
+        self._clients: dict[str, Fetcher] = {}
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
         self.states: dict[str, TrackerState] = {}
         for key, cfg in config.trackers.items():
             if cfg.enabled:
                 state = TrackerState(key=key, section=store.load(key))
+                if not cfg.cookie:
+                    # Reported, never fetched: the service still starts and serves what it has
+                    state.error_kind = "config"
+                    state.last_error = (
+                        f"{SITES[key].name} is enabled but has no cookie: set "
+                        f"TRACKIE_{key.upper()}_COOKIE_FILE or TRACKIE_{key.upper()}_ENABLED=false"
+                    )
+                    log.error("%s: %s", key, state.last_error)
                 self.states[key] = state
 
     def _default_client(self, key: str) -> SiteClient:
         return SiteClient(SITES[key], self.config.trackers[key], timeout_s=self.config.timeout_s)
 
-    def _client(self, key: str) -> SiteClient:
+    def _client(self, key: str) -> Fetcher:
         if key not in self._clients:
             self._clients[key] = self._client_factory(key)
         return self._clients[key]
 
     def _delay(self, failures: int) -> timedelta:
         base = min(self.config.poll_interval_s * 2**failures, self.config.max_backoff_s)
-        return timedelta(seconds=base + random.uniform(0, self.config.poll_jitter_s))
+        # Spreads the polls out; not security, so random is right
+        jitter = random.uniform(0, self.config.poll_jitter_s)  # noqa: S311
+        return timedelta(seconds=base + jitter)
 
     def poll(self, key: str) -> None:
         """One fetch of one tracker. Never raises: failures are recorded on the state."""
@@ -103,7 +119,7 @@ class Poller:
             pages = self._client(key).fetch()
             check_plausible(pages, state.section)
             section = tracker_section(pages, self.config.trackers[key])
-        except Exception as e:  # noqa: BLE001 - one tracker's failure must not stop the loop
+        except Exception as e:
             kind = {
                 AuthError: "auth",
                 FetchError: "fetch",
@@ -143,6 +159,8 @@ class Poller:
         for key, state in self.states.items():
             if self._stop.is_set():
                 return
+            if state.error_kind == "config":
+                continue
             if state.next_poll is None or state.next_poll <= now:
                 self.poll(key)
                 self._match_due = self.matcher is not None
@@ -161,7 +179,7 @@ class Poller:
         try:
             with self._match_lock:
                 self.matcher.refresh(records)
-        except Exception:  # noqa: BLE001 - matching must never stop polling
+        except Exception:
             log.exception("matching failed")
         self._match_due = False
 
@@ -179,6 +197,11 @@ class Poller:
         self._stop.set()
         if self._thread is not None:
             self._thread.join(timeout=5)
+
+    @property
+    def running(self) -> bool:
+        """Whether the polling thread is alive: /readyz answers 503 when it isn't."""
+        return self._thread is not None and self._thread.is_alive()
 
     def snapshot(self) -> dict[str, Any]:
         sections = {}
