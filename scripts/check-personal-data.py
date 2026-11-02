@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
-"""Fail if any tracked file contains personal data from the tracker sites.
-
-Saved tracker pages carry usernames, user IDs and the home IP. Raw copies
-belong in git-ignored paths only; committed fixtures must be scrubbed.
+"""Fail if any tracked file contains personal data. Template-owned: template-base.
 
 Checks every file tracked by git (or the paths given) for:
-  - public IPv4 addresses (RFC 5737 documentation ranges, private and
-    loopback addresses are allowed, so use 192.0.2.x etc. as placeholders)
-  - tracker user-ID query parameters (u=<digits>) other than the placeholder
-  - any string listed in FIXTURE_DENYLIST (newline-separated, case-insensitive),
-    meant to be supplied from a repo secret so the real values never appear here
+  - public IPv4 addresses. RFC 5737 documentation ranges, private and loopback
+    addresses are allowed, so use 192.0.2.x, 198.51.100.x or 203.0.113.x as placeholders.
+  - any string listed in PERSONAL_DATA_DENYLIST (one per line, case-insensitive).
+    Supply it from a repository secret, so the real values never appear in the repo.
 
-Version numbers after a product token ("Chrome/130.0.0.0") are not addresses.
-A line containing "personal-data: ok" is skipped by the IP and user-ID checks,
-for deliberate test values; the denylist still applies to it.
+Version numbers after a product token ("Chrome/130.0.0.0") are not treated as
+addresses. A line containing "personal-data: ok" skips the IP check, for
+deliberate test values; the denylist still applies to it.
 
 Stdlib only, so CI can run it before installing anything.
 """
+
+from __future__ import annotations
 
 import ipaddress
 import os
@@ -25,10 +23,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-PLACEHOLDER_USER_ID = "1000000"
 IPV4 = re.compile(r"(?<![\d.])(?<![A-Za-z]/)(\d{1,3}(?:\.\d{1,3}){3})(?![\d.])")
 ALLOW_MARKER = "personal-data: ok"
-USER_ID = re.compile(r"[?&;]u=(\d+)")
 SELF = Path(__file__).resolve()
 
 
@@ -39,51 +35,43 @@ def tracked_files() -> list[Path]:
 
 def is_public(addr: str) -> bool:
     try:
-        ip = ipaddress.IPv4Address(addr)
+        return ipaddress.IPv4Address(addr).is_global
     except ValueError:
         return False
-    return ip.is_global
 
 
 def check(path: Path, denylist: list[str]) -> list[str]:
     try:
         text = path.read_text(encoding="utf-8")
-    except (UnicodeDecodeError, IsADirectoryError, FileNotFoundError):
-        return []
+    except UnicodeDecodeError:
+        return []  # binary
+    except OSError:
+        return []  # a directory (submodule), or deleted since `git ls-files`
     problems = []
-    lowered = text.lower()
     for lineno, line in enumerate(text.splitlines(), 1):
         if ALLOW_MARKER in line:
             continue
-        for addr in IPV4.findall(line):
-            if is_public(addr):
-                problems.append(f"{path}:{lineno}: public IPv4 address")
-        for uid in USER_ID.findall(line):
-            if uid != PLACEHOLDER_USER_ID:
-                problems.append(f"{path}:{lineno}: user ID u={uid} (use u={PLACEHOLDER_USER_ID})")
-    for term in denylist:
-        if term in lowered:
-            problems.append(f"{path}: contains a FIXTURE_DENYLIST entry")
+        problems += [
+            f"{path}:{lineno}: public IPv4 address" for a in IPV4.findall(line) if is_public(a)
+        ]
+    lowered = text.lower()
+    if any(term in lowered for term in denylist):
+        problems.append(f"{path}: contains a PERSONAL_DATA_DENYLIST entry")
     return problems
 
 
 def main(argv: list[str]) -> int:
-    denylist = [t.strip().lower() for t in os.environ.get("FIXTURE_DENYLIST", "").splitlines()]
-    denylist = [t for t in denylist if t]
+    raw = os.environ.get("PERSONAL_DATA_DENYLIST", "").splitlines()
+    denylist = [t.strip().lower() for t in raw if t.strip()]
     paths = [Path(a) for a in argv] or tracked_files()
-    problems = []
-    for path in paths:
-        if path.resolve() != SELF:
-            problems.extend(check(path, denylist))
+    problems = [p for path in paths if path.resolve() != SELF for p in check(path, denylist)]
     for p in problems:
         print(p)
     if problems:
-        print(f"\n{len(problems)} personal-data finding(s). Scrub before committing.")
+        print(f"\n{len(problems)} personal-data finding(s). Scrub them before committing.")
         return 1
-    print(
-        f"No personal data found in {len(paths)} file(s)"
-        + (" (denylist active)" if denylist else "")
-    )
+    active = " (denylist active)" if denylist else ""
+    print(f"No personal data found in {len(paths)} file(s){active}")
     return 0
 
 

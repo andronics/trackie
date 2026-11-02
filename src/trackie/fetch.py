@@ -59,7 +59,8 @@ class SiteClient:
         self.cfg = cfg
         self.timeout_s = timeout_s
         self.session = session or requests.Session()
-        self.session.headers.update({"User-Agent": cfg.user_agent, "Cookie": cfg.cookie})
+        # The one place the cookie is revealed: the header the site reads
+        self.session.headers.update({"User-Agent": cfg.user_agent, "Cookie": cfg.cookie.reveal()})
         self._clock = clock
         self._sleep = sleep
         self._last_request: float | None = None
@@ -67,7 +68,8 @@ class SiteClient:
     def _wait_turn(self) -> None:
         if self._last_request is None:
             return
-        gap = self.cfg.request_gap_s + random.uniform(0, self.cfg.request_gap_s / 2)
+        # Politeness jitter, not security: random is right here
+        gap = self.cfg.request_gap_s + random.uniform(0, self.cfg.request_gap_s / 2)  # noqa: S311
         wait = self._last_request + gap - self._clock()
         if wait > 0:
             self._sleep(wait)

@@ -1,0 +1,27 @@
+# Written by Copier: never edit by hand. `copier update` reads it to know
+# which template version and answers this project was made from.
+_commit: v2.3.1
+_src_path: gh:andronics/template-python
+base_answers:
+    code_owners: '@andronics'
+    dependabot_automerge: 'off'
+    description: Scrapes private tracker stats (IPTorrents, TorrentDay) and serves
+        them as a JSON snapshot
+    github_owner: andronics
+    license: Unlicense
+    owner_is_org: false
+    personal_data_guard: true
+    project_name: trackie
+container_image: true
+contrib:
+- docker
+extra_ports: []
+health_path: /health
+image_extras: []
+integration_ci: false
+kind: service
+package_name: trackie
+port: 8080
+puid_pgid: false
+python_version: '3.13'
+timezone: Europe/London

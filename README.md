@@ -1,87 +1,98 @@
 # trackie
 
-Scrapes per-torrent and account stats from private trackers (IPTorrents, TorrentDay) and serves them as one JSON snapshot. It is the companion service for [qbt-rules](https://github.com/andronics/qbt-rules): rules can then check that the *tracker* agrees a ratio or seed-time requirement has been met before acting.
+[![CI](https://github.com/andronics/trackie/actions/workflows/base-ci.yml/badge.svg)](https://github.com/andronics/trackie/actions/workflows/base-ci.yml)
+[![Release](https://img.shields.io/github/v/release/andronics/trackie?sort=semver)](https://github.com/andronics/trackie/releases)
+[![Image](https://img.shields.io/badge/image-ghcr.io-blue?logo=docker)](https://github.com/andronics/trackie/pkgs/container/trackie)
 
-Status: early development. qbt-rules integration is deferred until trackie is proven against the live sites.
+Scrapes per-torrent and account stats from private trackers (IPTorrents, TorrentDay) and serves them as
+one JSON snapshot. It is the companion service for [qbt-rules](https://github.com/andronics/qbt-rules):
+rules can check that the *tracker* agrees a ratio or seed-time requirement has been met before acting.
 
-## What it does
+- Polls each tracker's Peers page (live seed time, ratio, "to go") and Hit & Run page on a slow timer.
+- Maps tracker torrent IDs to qBittorrent hashes from *arr grab history, then Prowlarr history, then name
+  plus size, and saves every mapping.
+- Serves `GET /snapshot` (`{generated_at, fetched_at, accounts, torrents, unmatched}`, torrents keyed by
+  hash), `GET /health` (per-tracker fetch status) and `GET /readyz`.
 
-- Polls each tracker's Peers page (live per-torrent seed time, ratio, "to go") and Hit & Run page (failures and the gap still owed) on a slow timer.
-- Maps tracker torrent IDs to qBittorrent hashes, using *arr grab history, then Prowlarr history, then name plus size, and saves every mapping. Learns which qBittorrent announce hosts belong to which tracker from the exact matches.
-- Serves:
-  - `GET /snapshot`: `{fetched_at, accounts, torrents}` keyed by torrent hash.
-  - `GET /health`: per-tracker fetch status.
+## Quick Start
 
-## Running
-
-```yaml
-services:
-  trackie:
-    image: ghcr.io/andronics/trackie:edge
-    restart: unless-stopped
-    networks: [pvr_stack]          # same network as qBittorrent and the *arr apps
-    volumes:
-      - ./trackie:/config          # config.yml, plus state/ (last good data, mappings)
-    environment:
-      TRACKIE_IPT_COOKIE_FILE: /run/secrets/ipt_cookie
-      TRACKIE_TD_COOKIE_FILE: /run/secrets/td_cookie
-      TRACKIE_QBITTORRENT_URL: http://qbittorrent:8080
-      TRACKIE_SONARR_URL: http://sonarr:8989
-      TRACKIE_SONARR_API_KEY_FILE: /run/secrets/sonarr_api_key
-      TRACKIE_RADARR_URL: http://radarr:7878
-      TRACKIE_RADARR_API_KEY_FILE: /run/secrets/radarr_api_key
-      TRACKIE_PROWLARR_URL: http://prowlarr:9696
-      TRACKIE_PROWLARR_API_KEY_FILE: /run/secrets/prowlarr_api_key
-    secrets: [ipt_cookie, td_cookie, sonarr_api_key, radarr_api_key, prowlarr_api_key]
+```sh
+docker run -d --name trackie -p 127.0.0.1:8080:8080 \
+  -v ./state:/var/lib/trackie -v ./secrets:/run/secrets:ro \
+  -e TRACKIE_IPT_COOKIE_FILE=/run/secrets/ipt_cookie \
+  -e TRACKIE_TD_COOKIE_FILE=/run/secrets/td_cookie \
+  -e TRACKIE_QBITTORRENT_URL=http://qbittorrent:8080 \
+  ghcr.io/andronics/trackie:edge
+curl http://127.0.0.1:8080/health
 ```
 
-Every setting is in [`config/config.example.yml`](config/config.example.yml). Readarr and Lidarr work the same way (`TRACKIE_READARR_*`, `TRACKIE_LIDARR_*`). The port, 8080, is only needed on the Docker network.
-
-Keep `/config/state/mappings.json` on a volume: it holds every tracker ID to hash mapping ever found, and the histories it came from do not keep them forever.
-
-## Documentation
-
-The [wiki](https://github.com/andronics/trackie/wiki) covers setup, every snapshot field, matching, configuration, troubleshooting and development. Start with the [Quick Start](https://github.com/andronics/trackie/wiki/Quick-Start).
+Every setting, and the *arr and Prowlarr sources, are in the wiki's
+[In-Depth Configuration](https://github.com/andronics/trackie/wiki/In-Depth-Configuration); the full
+walk-through is the [Quick Start](https://github.com/andronics/trackie/wiki/Quick-Start). Keep the state
+directory on a volume: it holds every tracker ID to hash mapping ever found, and the histories they came
+from don't keep them forever.
 
 ## Data handling
 
-Saved tracker pages contain usernames, user IDs and IP addresses. Never commit raw pages; `data/` and `tests/fixtures/raw/` are git-ignored, and only scrubbed copies belong in `tests/fixtures/`. Cookies and API keys must never be committed or logged.
-
-To add or refresh a test page:
+Saved tracker pages contain usernames, user IDs and IP addresses. Never commit raw pages: `data/` and
+`tests/fixtures/raw/` are git-ignored, and only scrubbed copies belong in `tests/fixtures/`. Cookies and
+API keys must never be committed or logged. To add or refresh a test page:
 
 ```sh
 cp ~/saved-page.html tests/fixtures/raw/ipt_peers.html          # git-ignored
 scripts/scrub-fixture.py tests/fixtures/raw/ipt_peers.html tests/fixtures/ipt_peers.html
-scripts/check-personal-data.py tests/fixtures/ipt_peers.html
+scripts/check-personal-data.py tests/fixtures/ipt_peers.html    # public IPs, the denylist
+scripts/check-tracker-user-ids.py tests/fixtures/ipt_peers.html # u=<id> other than 1000000
 ```
 
-`scrub-fixture.py` finds the account's user ID, username and every public IP in the page itself and swaps in placeholders (`1000000`, `fixtureuser`, `192.0.2.x`).
+CI runs both on every tracked file. The optional repository secret `PERSONAL_DATA_DENYLIST` (one
+username, user ID or IP per line) makes the guard also fail on those exact values; `FIXTURE_DENYLIST`,
+its earlier name, is still read by `fixture-denylist.yml`.
+
+## Documentation
+
+Everything is in the **[wiki](https://github.com/andronics/trackie/wiki)**. Its source is [`docs/wiki/`](docs/wiki/), in this
+repository, reviewed with the code.
+
+- [Introduction](https://github.com/andronics/trackie/wiki/Introduction): what it is and how it works
+- [In-Depth Configuration](https://github.com/andronics/trackie/wiki/In-Depth-Configuration): every setting
+- [Deployment](https://github.com/andronics/trackie/wiki/Deployment): docker, and upgrading from 0.1
+- [Using with qbt-rules](https://github.com/andronics/trackie/wiki/Using-with-qbt-rules) and [Snapshot Fields](https://github.com/andronics/trackie/wiki/Snapshot-Fields)
+- [Troubleshooting](https://github.com/andronics/trackie/wiki/Troubleshooting) and [FAQ](https://github.com/andronics/trackie/wiki/Frequently-Asked-Questions)
+- [Contributing](https://github.com/andronics/trackie/wiki/Contributing) and [Release Process](https://github.com/andronics/trackie/wiki/Release-Process)
+
+## For AI assistants
+
+Built with AI assistants; every change gets human review. **[AGENTS.md](AGENTS.md) and
+[.agents/stack.md](.agents/stack.md) are the only instruction files** (stack, commands, rules, definition of
+done, docs map). Read them instead of this README.
+
+| Assistant | Entry point |
+|---|---|
+| Claude Code | [CLAUDE.md](CLAUDE.md) (imports both) + [.claude/settings.json](.claude/settings.json) |
+| Codex, Cursor, Copilot coding agent | AGENTS.md, natively ([Copilot](.github/copilot-instructions.md), [Cursor](.cursor/rules/project.mdc) pointers) |
+| Gemini CLI | [GEMINI.md](GEMINI.md) (imports both) |
+| Chat without repo access | [docs/ai/prompts.md](docs/ai/prompts.md), "Context for a chat assistant" |
+
+Humans: kick-off prompts are in [docs/ai/prompts.md](docs/ai/prompts.md), and the review checklist in
+[docs/ai/review-checklist.md](docs/ai/review-checklist.md).
 
 ## Development
 
 ```sh
-python -m venv .venv && . .venv/bin/activate
-pip install -e ".[dev]"
-ruff check src/ tests/ scripts/ && black --check src/ tests/ scripts/ && mypy src/trackie
-pytest -m "not live"
-python scripts/check-personal-data.py
+uv sync                           # Python >= 3.13, dev tools included
+uv run pytest                     # tests (80% coverage floor)
+uv run ruff check && uv run mypy  # lint and type check
 ```
 
-## CI/CD
+The workflow is: a branch, Conventional Commit PR titles, squash merge. Releases are automated by
+release-please. See [Contributing](https://github.com/andronics/trackie/wiki/Contributing).
 
-| Workflow | Runs on | Does |
-| --- | --- | --- |
-| `ci.yml` | push to `main` and `dev/**`, PRs | personal-data guard, then ruff, black, mypy and pytest on Python 3.11 to 3.13 (all blocking), version consistency |
-| `docker-build.yml` | push to `main`, `dev/**`, `v*` tags | builds the image, smoke-tests `/health`, then pushes `linux/amd64` (all cluster nodes are amd64) to `ghcr.io/andronics/trackie` |
-| `docker-cleanup.yml` | daily | deletes `dev-*` image tags older than 7 days |
-| `release.yml` | `v*` tags | checks the tag matches the version files, writes `CHANGELOG.md`, creates the GitHub release |
-
-Image tags: `edge` (main), `dev-<branch>` and `dev-<branch>-<sha>` (dev branches), `X.Y.Z`, `X.Y`, `X` and `latest` (releases).
-
-Feature work goes on `dev/<name>` branches; pushing one publishes a testable image. To release, run `./scripts/bump-version.sh <major|minor|patch>` on `main`, then `git push && git push --tags`. Never tag by hand and never edit `CHANGELOG.md`.
-
-The optional repo secret `FIXTURE_DENYLIST` (one username, user ID or IP per line) makes the personal-data guard also fail on those exact values without them ever appearing in the repo.
+This project was generated from [template-base](https://github.com/andronics/template-base) and
+[template-python](https://github.com/andronics/template-python) (and
+[template-container](https://github.com/andronics/template-container) for the image). Template
+fixes arrive as a weekly *Template update* PR per template.
 
 ## License
 
-Unlicense. See [LICENSE](LICENSE).
+Released into the public domain under the [Unlicense](LICENSE).

@@ -1,32 +1,48 @@
+# Template-owned: template-python (a slot: base's required entries are checked by scripts/checks.d/00-base.sh).
 # Python
 __pycache__/
 *.py[cod]
 *.egg-info/
-.venv/
-venv/
 build/
 dist/
+.venv/
+
+# Tooling
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
+coverage.xml
 htmlcov/
 
-# Secrets and personal data: cookies, API keys, raw saved tracker pages
-.env
-*.cookies
-cookies*.txt
-secrets/
-data/
-config/*.local.yml
-
-# Raw (unscrubbed) fixtures; only scrubbed copies are committed
-tests/fixtures/raw/
-
-# Editors
-.vscode/
-.idea/
-
-# graphify knowledge graph (rebuilt locally by a git hook)
+# Local knowledge graphs (graphify): rebuilt locally, never committed
 .graphify/
 graphify-out/
+
+# Secrets and local state: never committed
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+private/
+/data/
+contrib/docker/config/
+contrib/docker/state/
+contrib/docker/secrets/
+
+# Editors and AI assistants' local files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+.claude/settings.local.json
+CLAUDE.local.md
+
+# trackie: tracker cookies and raw (unscrubbed) saved pages, which hold usernames, user IDs
+# and IPs. Only scrubbed copies belong in tests/fixtures/ (README, "Data handling").
+*.cookies
+cookies*.txt
+tests/fixtures/raw/
