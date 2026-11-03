@@ -9,7 +9,7 @@ Each tracker is polled on its own timer:
 | `poll.interval` | 2700 s (45 min) | Time between successful fetches. **Minimum 600 s**; anything lower is refused at startup |
 | `poll.jitter` | 600 s (10 min) | Up to this much is added at random each time, so fetches don't land on the same minute |
 | `poll.max_backoff` | 21600 s (6 h) | The longest wait after repeated failures |
-| `<site>.request_gap` (`ipt`, `td`) | 5 s | Minimum time between the two page loads of one fetch (plus up to half again at random) |
+| `<site>.request_gap` (`ipt`, `td`) | 5 s | Minimum time between the page loads of one fetch (plus up to half again at random): H&R, then each Peers page |
 
 Every tracker is fetched once at startup; any saved data is served until that fetch completes. Each poll is two page loads per tracker. Nothing else triggers a fetch; a busy consumer calling `/snapshot` costs the trackers nothing.
 

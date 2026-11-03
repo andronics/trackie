@@ -5,6 +5,7 @@ import requests
 import requests_mock
 
 from trackie.fetch import AuthError, FetchError, SiteClient
+from trackie.parsers import ParseError
 from trackie.sites import SITES
 
 from .helpers import tracker_cfg
@@ -67,6 +68,33 @@ def test_requests_are_spaced_out(page: Page, requests_mock: requests_mock.Mocker
     client("td", clock).fetch()
     assert len(clock.slept) == 1
     assert 5 <= clock.slept[0] <= 7.5
+
+
+def test_ipt_peers_pages_are_all_fetched(page: Page, requests_mock: requests_mock.Mocker) -> None:
+    site = SITES["ipt"]
+    requests_mock.get(f"{site.base_url}{site.hnr_path}", text=page("ipt_hnr"))
+    # requests-mock tries the newest matcher first; the first also matches "&p=2"
+    requests_mock.get(f"{site.base_url}/peers?u=1000000", text=page("ipt_peers_redesign"))
+    second = requests_mock.get(
+        f"{site.base_url}/peers?u=1000000&p=2", text=page("ipt_peers_redesign_p2")
+    )
+    clock = FakeClock()
+
+    result = client("ipt", clock).fetch()
+
+    assert second.called_once
+    assert [r.tracker_id for r in result.peers.rows] == list(range(1000001, 1000008))
+    assert result.peers.account.seeding == 6
+    assert len(clock.slept) == 2  # the request gap applies to every page
+
+
+def test_ipt_peers_pager_loop_is_an_error(page: Page, requests_mock: requests_mock.Mocker) -> None:
+    site = SITES["ipt"]
+    requests_mock.get(f"{site.base_url}{site.hnr_path}", text=page("ipt_hnr"))
+    # Every page claims to be page 1 of 2
+    requests_mock.get(f"{site.base_url}/peers?u=1000000", text=page("ipt_peers_redesign"))
+    with pytest.raises(ParseError, match="pager"):
+        client("ipt").fetch()
 
 
 def test_login_redirect_is_an_auth_error(requests_mock: requests_mock.Mocker) -> None:

@@ -27,6 +27,15 @@ Every torrent the tracker currently sees you on, split into Seeders and Leechers
 | Seeding Time | `4.9 days to go` / `2.1 weeks` | "to go" means the requirement is still open (`remaining_s`); no "to go" means it's met (`seed_time_s`) |
 | Client, IP | | Ignored, and never copied into trackie's data |
 
+IPT redesigned its Peers page around 2026-10-31, and trackie reads both layouts. The new one differs:
+
+- A **Status** column (`Seeding`, `Leeching`) replaces the Seeders and Leechers sections.
+- **Uploaded / Downloaded** show this session's transfer (`-` for none) with a `Total 5.95 GB` line under it for the lifetime. With no `Total` line the two are the same. A line such as `494 B/s` is the current rate, and trackie ignores it.
+- **Seeding** shows `569 h` with `Requirement met` under it, or `247 h to go`.
+- Names are shown in full, so `name_truncated` is `false`. There is no progress column, so `progress_pct` is `null`.
+- Rows come 100 to a page (`Page 1 of 3`), and trackie fetches every page, with the request gap before each one.
+- The IP is now under **Address**, which is also never copied.
+
 **Absence means unknown.** A paused, stalled or erroring torrent drops off the Peers page. trackie never reads that as "satisfied".
 
 **Values are coarse.** "2.1 weeks" has one decimal place, so it's only accurate to about ±8 hours. Fine for a yes/no, fuzzy near a threshold.

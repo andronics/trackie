@@ -64,6 +64,8 @@ class HnrRow:
 class PeersPage:
     account: AccountStats
     rows: list[PeerRow]
+    # The page number to fetch next when the site splits Peers over pages; None on the last
+    next_page: int | None = None
 
 
 @dataclass(frozen=True)

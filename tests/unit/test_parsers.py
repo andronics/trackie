@@ -1,6 +1,7 @@
 """Parsers against scrubbed pages saved from both sites on 2026-10-20.
 
-Expected counts were checked by hand against the live pages when saved.
+Expected counts were checked by hand against the live pages when saved. The
+ipt_peers_redesign fixtures are synthetic: IPT's Peers layout from 2026-10-31.
 """
 
 import re
@@ -69,6 +70,71 @@ def test_ipt_account(page: Page) -> None:
     assert account.downloaded_b == 421 * GB
     assert account.bonus == pytest.approx(7305.3)
     assert (account.seeding, account.leeching) == (124, 0)
+
+
+def test_ipt_peers_redesign_rows(page: Page) -> None:
+    result = ipt.parse_peers(page("ipt_peers_redesign"))
+    rows = {r.tracker_id: r for r in result.rows}
+    assert list(rows) == [1000001, 1000002, 1000003, 1000004, 1000005]
+    assert result.next_page == 2
+    assert [r.role for r in result.rows] == ["seeder"] * 4 + ["leecher"]
+    assert not any(r.name_truncated for r in result.rows)
+    assert result.account.ratio == pytest.approx(1.234)
+    assert (result.account.seeding, result.account.leeching) == (6, 1)
+
+    met = rows[1000001]
+    assert met.name == "Example Show S01E01 1080p WEB-DL"
+    # "2.63 GB" this session, "Total 5.95 GB" under it; the "373 KB/s" rate line is not a total
+    assert met.session_uploaded_b == round(2.63 * GB)
+    assert met.uploaded_b == round(5.95 * GB)
+    assert met.session_downloaded_b == 0  # "-"
+    assert met.downloaded_b == round(14.7 * GB)
+    assert met.seed_time_s == 569 * 3600
+    assert met.remaining_s is None
+    assert met.client == "qBittorrent/5.2.4"
+
+    open_row = rows[1000002]
+    # No "Total" line: this session is the whole lifetime
+    assert open_row.session_uploaded_b == open_row.uploaded_b == 117 * MB
+    assert open_row.downloaded_b == round(1.49 * GB)
+    assert open_row.remaining_s == 247 * 3600
+    assert open_row.seed_time_s is None
+
+    nothing = rows[1000003]
+    assert (nothing.uploaded_b, nothing.session_uploaded_b) == (0, 0)
+
+    leecher = rows[1000005]
+    assert (leecher.seed_time_s, leecher.remaining_s) == (None, None)
+    assert leecher.downloaded_b == 512 * MB
+
+
+def test_ipt_peers_redesign_last_page(page: Page) -> None:
+    result = ipt.parse_peers(page("ipt_peers_redesign_p2"))
+    assert result.next_page is None
+    assert [r.tracker_id for r in result.rows] == [1000004, 1000006, 1000007]
+    assert result.rows[2].seed_time_s == 1024 * 3600
+
+
+def test_ipt_peers_redesign_raw_has_no_address(page: Page) -> None:
+    for row in ipt.parse_peers(page("ipt_peers_redesign")).rows:
+        assert "address" not in row.raw
+        assert "192.0.2" not in " ".join(row.raw.values())
+        assert row.raw["seeding"] or row.role == "leecher"
+
+
+def test_ipt_peers_redesign_without_pager_is_one_page(page: Page) -> None:
+    html = re.sub(r'<nav class="pr-pager">.*?</nav>', "", page("ipt_peers_redesign"), flags=re.S)
+    assert ipt.parse_peers(html).next_page is None
+
+
+def test_ipt_peers_redesign_empty_list_is_valid(page: Page) -> None:
+    html = re.sub(
+        r'<table class="pr-table">.*?</table>',
+        '<p class="pr-empty">No active torrents.</p>',
+        page("ipt_peers_redesign"),
+        flags=re.S,
+    )
+    assert ipt.parse_peers(html).rows == []
 
 
 # --- IPT Hit & Run -----------------------------------------------------------
@@ -180,6 +246,26 @@ def test_ipt_peers_missing_table_is_an_error(page: Page) -> None:
         r"<table class=t1><tr><th><a[^>]*>Torrent.*?</table>", "", page("ipt_peers"), flags=re.S
     )
     with pytest.raises(ParseError, match="no Peers table"):
+        ipt.parse_peers(html)
+
+
+def test_ipt_peers_redesign_missing_table_is_an_error(page: Page) -> None:
+    html = re.sub(
+        r'<table class="pr-table">.*?</table>', "", page("ipt_peers_redesign"), flags=re.S
+    )
+    with pytest.raises(ParseError, match="no Peers table"):
+        ipt.parse_peers(html)
+
+
+def test_ipt_peers_redesign_missing_column_is_an_error(page: Page) -> None:
+    html = page("ipt_peers_redesign").replace(">Seeding</a></th>", ">Seeded</a></th>")
+    with pytest.raises(ParseError, match="missing columns"):
+        ipt.parse_peers(html)
+
+
+def test_ipt_peers_redesign_unknown_size_is_an_error(page: Page) -> None:
+    html = page("ipt_peers_redesign").replace("Total 5.95 GB", "Total 5.95 GQ")
+    with pytest.raises(ParseError, match="GQ"):
         ipt.parse_peers(html)
 
 
