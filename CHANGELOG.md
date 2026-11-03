@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/andronics/trackie/compare/v0.2.0...v0.2.1) (2026-11-03)
+
+
+### 🐛 Bug Fixes
+
+* **ipt:** parse the redesigned Peers page ([#17](https://github.com/andronics/trackie/issues/17)) ([c214106](https://github.com/andronics/trackie/commit/c214106069a358fb472a7c45a8fa622ca691f92f)), closes [#16](https://github.com/andronics/trackie/issues/16)
+
 ## [0.2.0](https://github.com/andronics/trackie/compare/v0.1.0...v0.2.0) (2026-11-02)
 
 
