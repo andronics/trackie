@@ -28,6 +28,7 @@ tests/
 ├── conftest.py          # clean_env (no TRACKIE_* leakage, no /config of this machine's), write_config, page
 ├── fixtures/
 │   ├── ipt_peers.html   # scrubbed real pages, saved 2026-10-20
+│   ├── ipt_peers_redesign.html, ipt_peers_redesign_p2.html  # synthetic: IPT's Peers layout from 2026-10-31
 │   ├── ipt_hnr.html
 │   ├── td_peers.html
 │   ├── td_hnr.html
@@ -69,6 +70,8 @@ The parser tests run against **real pages saved from the sites**, because hand-w
    ```
 
 4. **Look** at the diff yourself before committing. The scripts catch IDs and IPs, not everything.
+
+The exception is `ipt_peers_redesign*.html`: a hand-written skeleton of IPT's redesigned Peers page, with made-up names and values, built from a structure-only read of the live page so that no personal data passed through it. Replace it with a scrubbed saved page when one is available.
 
 Over every tracked file, CI fails on:
 

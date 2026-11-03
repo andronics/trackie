@@ -8,7 +8,7 @@ from trackie.parsers.models import ParseError
 from trackie.units import UnitError, parse_duration, parse_size
 
 # Never copied into PeerRow.raw: they hold the account name and home IP
-PRIVATE_COLUMNS = frozenset({"user", "ip", "ip address"})
+PRIVATE_COLUMNS = frozenset({"user", "ip", "ip address", "address"})
 
 # "0 B (35.7 MB)": this session's transfer, then lifetime in brackets
 _SESSION_LIFETIME = re.compile(r"^\s*(.+?)\s*\((.+)\)\s*$")

@@ -43,7 +43,7 @@ One container, one uvicorn process. There is exactly **one** on purpose: the pol
 ## Data flow
 
 1. `Poller.run_due()` finds a tracker whose `next_poll` has passed and calls `poll(key)`.
-2. `SiteClient.fetch()` loads the Hit & Run page, hands it to `site.parse_hnr`, reads the user ID from the profile link, waits out the request gap, then loads and parses Peers.
+2. `SiteClient.fetch()` loads the Hit & Run page, hands it to `site.parse_hnr`, reads the user ID from the profile link, waits out the request gap, then loads and parses Peers. IPT splits Peers over pages of 100 (`PeersPage.next_page`), so `SiteClient` follows them with `&p=<n>`, a request gap before each, up to `MAX_PEERS_PAGES`, and keeps the first row of a torrent that shows up on two pages.
 3. `check_plausible()` applies the zero-row guard against the previous section.
 4. `snapshot.tracker_section()` turns the two pages into a plain-dict **section** (account plus records). Sections are JSON-ready, which is what makes persistence trivial.
 5. `StateStore.save()` writes the section; the poller swaps it into the tracker's state under a lock.

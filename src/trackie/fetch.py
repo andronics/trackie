@@ -26,6 +26,8 @@ _PROFILE_LINK = re.compile(r'href="/u/(\d+)"')
 _USER_PARAM = re.compile(r"([?&;]u=)\d+")
 _PASSWORD_FIELD = re.compile(r"<input[^>]+type=[\"']?password", re.IGNORECASE)
 _CLOUDFLARE = ("cf-chl", "challenge-platform", "Just a moment...")
+# IPT shows 100 Peers rows a page: this allows 2,000 torrents, and stops a pager loop
+MAX_PEERS_PAGES = 20
 
 
 class FetchError(Exception):
@@ -100,6 +102,25 @@ class SiteClient:
         log.debug("%s: fetched %s (%d bytes)", self.site.name, shown, len(body))
         return body
 
+    def _peers(self, path: str) -> PeersPage:
+        """All of the Peers pages, joined: the account header comes from the first."""
+        first = page = self.site.parse_peers(self.get(path))
+        rows = {r.tracker_id: r for r in first.rows}
+        fetched = 1
+        while page.next_page is not None:
+            if fetched >= MAX_PEERS_PAGES or page.next_page <= fetched:
+                raise ParseError(
+                    f"{self.site.name}: Peers pager asks for page {page.next_page} "
+                    f"after {fetched} pages"
+                )
+            sep = "&" if "?" in path else "?"
+            page = self.site.parse_peers(self.get(f"{path}{sep}p={page.next_page}"))
+            fetched += 1
+            # A torrent can move to the next page between requests: keep its first row
+            for row in page.rows:
+                rows.setdefault(row.tracker_id, row)
+        return PeersPage(account=first.account, rows=list(rows.values()))
+
     def fetch(self) -> TrackerPages:
         """H&R first: it needs no user ID, and its header reveals the ID for Peers."""
         hnr_html = self.get(self.site.hnr_path)
@@ -112,7 +133,7 @@ class SiteClient:
                 raise ParseError(f"{self.site.name}: no profile link to read the user ID from")
             user_id = int(m.group(1))
 
-        peers = self.site.parse_peers(self.get(self.site.peers_path.format(uid=user_id)))
+        peers = self._peers(self.site.peers_path.format(uid=user_id))
         return TrackerPages(
             tracker=self.site.key,
             user_id=user_id,
