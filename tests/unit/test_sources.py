@@ -131,3 +131,33 @@ def test_qbt_login_refused(requests_mock: requests_mock.Mocker) -> None:
     requests_mock.post("http://qbt:8080/api/v2/auth/login", text="Fails.")
     with pytest.raises(SourceError, match="login refused"):
         QbtClient("http://qbt:8080", "admin", "wrong").torrents()
+
+
+def test_qbt_login_204_with_sid(requests_mock: requests_mock.Mocker) -> None:
+    # qBittorrent 5.2: 204 No Content, and the session cookie.
+    login = requests_mock.post(
+        "http://qbt:8080/api/v2/auth/login", status_code=204, cookies={"SID": "abc"}
+    )
+    requests_mock.get("http://qbt:8080/api/v2/torrents/info", json=[])
+    client = QbtClient("http://qbt:8080", "admin", "pw")
+    client.torrents()
+    client.torrents()
+    assert login.call_count == 1
+
+
+def test_qbt_login_ok_with_sid(requests_mock: requests_mock.Mocker) -> None:
+    requests_mock.post("http://qbt:8080/api/v2/auth/login", text="Ok.", cookies={"SID": "abc"})
+    requests_mock.get("http://qbt:8080/api/v2/torrents/info", json=[])
+    assert QbtClient("http://qbt:8080", "admin", "pw").torrents() == []
+
+
+def test_qbt_login_2xx_without_sid_refused(requests_mock: requests_mock.Mocker) -> None:
+    requests_mock.post("http://qbt:8080/api/v2/auth/login", status_code=204)
+    with pytest.raises(SourceError, match="login refused"):
+        QbtClient("http://qbt:8080", "admin", "pw").torrents()
+
+
+def test_qbt_login_fails_body_refused_even_with_sid(requests_mock: requests_mock.Mocker) -> None:
+    requests_mock.post("http://qbt:8080/api/v2/auth/login", text="Fails.", cookies={"SID": "abc"})
+    with pytest.raises(SourceError, match="login refused"):
+        QbtClient("http://qbt:8080", "admin", "wrong").torrents()

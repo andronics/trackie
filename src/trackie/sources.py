@@ -182,9 +182,20 @@ class QbtClient(_Api):
             )
         except requests.RequestException as e:
             raise SourceError(f"qbittorrent: {type(e).__name__} logging in") from None
-        if resp.status_code != 200 or resp.text.strip() != "Ok.":
+        # qBittorrent before 5.2 answers 200 "Ok."; 5.2 answers 204 No Content and sets the
+        # session cookie. A refusal is 200 "Fails." (and no cookie) in both.
+        body = resp.text.strip()
+        old_ok = resp.status_code == 200 and body == "Ok."
+        new_ok = 200 <= resp.status_code < 300 and body != "Fails." and self._has_sid(resp)
+        if not (old_ok or new_ok):
             raise SourceError("qbittorrent: login refused; check username and password")
         self._logged_in = True
+
+    def _has_sid(self, resp: requests.Response) -> bool:
+        # The cookie the login set, or the one the session now holds; named "SID", or
+        # "QBT_SID_<port>" where qBittorrent names it per port.
+        jars = (resp.cookies, self.session.cookies)
+        return any(c.name == "SID" or c.name.startswith("QBT_SID_") for j in jars for c in j)
 
     def torrents(self) -> list[QbtTorrent]:
         self._login()
