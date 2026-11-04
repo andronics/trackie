@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/andronics/trackie/compare/v0.2.1...v0.2.2) (2026-11-04)
+
+
+### 🐛 Bug Fixes
+
+* **qbittorrent:** accept 204 login from qBittorrent 5.2 ([#19](https://github.com/andronics/trackie/issues/19)) ([37aa4c6](https://github.com/andronics/trackie/commit/37aa4c65d62626a5cf0f769eedc9c58228561a49))
+
 ## [0.2.1](https://github.com/andronics/trackie/compare/v0.2.0...v0.2.1) (2026-11-03)
 
 
