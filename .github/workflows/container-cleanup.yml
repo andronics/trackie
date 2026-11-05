@@ -22,7 +22,9 @@ jobs:
     steps:
       - uses: snok/container-retention-policy@d3bdcf5ce9b05f685154e4a16c39233b245e3d53 # v3.1.0
         with:
-          account: andronics
+          # A personal account's packages are /user/packages: snok reads any other
+          # value as an organisation's name, and /orgs/andronics is a 404.
+          account: user
           # GITHUB_TOKEN can delete versions only if the package grants this repo's
           # Actions the Admin role (package settings -> Manage Actions access).
           # Otherwise set PACKAGES_DELETE_TOKEN (a token with delete:packages).
