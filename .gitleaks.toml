@@ -1,14 +1,10 @@
 # gitleaks: the default rules, plus allow-listed false positives. Add an entry
 # with a comment saying why, never a blanket path.
 [extend]
-useDefault = true
+path = ".gitleaks.base.toml"
 
 [allowlist]
 description = "Known non-secrets"
-paths = [
-  # lock files: integrity hashes look like secrets
-  '''(^|/)(uv\.lock|pnpm-lock\.yaml|package-lock\.json)$''',
-]
 regexes = [
   # trackie's tests: the fake *arr API key the source tests send (tests/unit/test_sources.py)
   '''0123456789abcdef0123456789abcdef''',
