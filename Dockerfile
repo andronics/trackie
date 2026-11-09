@@ -79,6 +79,10 @@ RUN mkdir -p /etc/trackie /var/lib/trackie \
     && chown trackie:trackie /var/lib/trackie
 COPY contrib/trackie.example.yaml /usr/share/trackie/config.example.yaml
 
+# Relative paths resolve in the state directory, never in / (where an old
+# volume such as /config could be read by mistake): template-python decision 0009
+WORKDIR /var/lib/trackie
+
 # Bind every interface whatever the app's default: in a container, the
 # published ports decide what is reachable, and loopback would be unreachable
 ENV TRACKIE_LISTEN_HOST=0.0.0.0
