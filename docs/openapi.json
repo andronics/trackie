@@ -1,0 +1,646 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "trackie",
+    "description": "Scrapes private tracker stats (IPTorrents, TorrentDay) and serves them as a JSON snapshot",
+    "version": "snapshot"
+  },
+  "paths": {
+    "/snapshot": {
+      "get": {
+        "tags": [
+          "snapshot"
+        ],
+        "summary": "Every tracker's last good data, keyed by qBittorrent hash",
+        "description": "What qbt-rules reads, once per run. A tracker whose fetch failed keeps its last\ngood data and its `fetched_at`, so the reader can judge the age itself; a tracker\nwith no data yet is absent.",
+        "operationId": "snapshot_snapshot_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Liveness, with each tracker's fetch status",
+        "description": "Always 200 while the process is up, even when `status` is `degraded`.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Readiness: 503 unless the poller is running",
+        "operationId": "readyz_readyz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ready"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The poller isn't running"
+          }
+        }
+      }
+    },
+    "/version": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "The running version",
+        "operationId": "get_version_version_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Get Version Version Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Account": {
+        "properties": {
+          "ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratio"
+          },
+          "uploaded_b": {
+            "type": "integer",
+            "title": "Uploaded B"
+          },
+          "downloaded_b": {
+            "type": "integer",
+            "title": "Downloaded B"
+          },
+          "bonus": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bonus"
+          },
+          "seeding": {
+            "type": "integer",
+            "title": "Seeding"
+          },
+          "leeching": {
+            "type": "integer",
+            "title": "Leeching"
+          },
+          "hnr_count": {
+            "type": "integer",
+            "title": "Hnr Count"
+          },
+          "hnr_limit": {
+            "type": "integer",
+            "title": "Hnr Limit"
+          },
+          "hnr_grace_s": {
+            "type": "integer",
+            "title": "Hnr Grace S"
+          },
+          "min_ratio": {
+            "type": "number",
+            "title": "Min Ratio"
+          },
+          "announce_hosts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Announce Hosts"
+          },
+          "seen_at": {
+            "type": "string",
+            "title": "Seen At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ratio",
+          "uploaded_b",
+          "downloaded_b",
+          "bonus",
+          "seeding",
+          "leeching",
+          "hnr_count",
+          "hnr_limit",
+          "hnr_grace_s",
+          "min_ratio",
+          "announce_hosts",
+          "seen_at"
+        ],
+        "title": "Account",
+        "description": "One tracker account: the page header plus the site rules trackie applies."
+      },
+      "Health": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status"
+          },
+          "trackers": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TrackerHealth"
+            },
+            "type": "object",
+            "title": "Trackers"
+          },
+          "matching": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Matching"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present when a matching source is configured."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version",
+          "status",
+          "trackers"
+        ],
+        "title": "Health",
+        "description": "Always 200 while the process is up; `status` says whether every tracker is fine."
+      },
+      "Matching": {
+        "properties": {
+          "last_run": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run"
+          },
+          "errors": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Errors"
+          },
+          "new_last_run": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "New Last Run"
+          },
+          "mappings": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Mappings"
+          },
+          "hosts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Hosts"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "last_run",
+          "errors",
+          "new_last_run",
+          "mappings",
+          "hosts"
+        ],
+        "title": "Matching"
+      },
+      "Ready": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ready",
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "Ready"
+      },
+      "Snapshot": {
+        "properties": {
+          "generated_at": {
+            "type": "string",
+            "title": "Generated At"
+          },
+          "fetched_at": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Fetched At",
+            "description": "Per tracker: when its data was fetched."
+          },
+          "accounts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Account"
+            },
+            "type": "object",
+            "title": "Accounts"
+          },
+          "torrents": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TorrentRecord"
+            },
+            "type": "object",
+            "title": "Torrents",
+            "description": "Keyed by qBittorrent info hash."
+          },
+          "unmatched": {
+            "items": {
+              "$ref": "#/components/schemas/TorrentRecord"
+            },
+            "type": "array",
+            "title": "Unmatched"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "generated_at",
+          "fetched_at",
+          "accounts",
+          "torrents",
+          "unmatched"
+        ],
+        "title": "Snapshot",
+        "description": "Every tracker's last good data. Records with a known hash are under `torrents`."
+      },
+      "TorrentRecord": {
+        "properties": {
+          "tracker": {
+            "type": "string",
+            "title": "Tracker",
+            "description": "The tracker's key: `ipt` or `td`."
+          },
+          "tracker_id": {
+            "type": "integer",
+            "title": "Tracker Id",
+            "description": "The torrent's ID on the tracker."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "name_truncated": {
+            "type": "boolean",
+            "title": "Name Truncated",
+            "description": "The Peers page cut the name short."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "required",
+              "satisfied",
+              "hnr"
+            ],
+            "title": "Status"
+          },
+          "remaining_s": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remaining S",
+            "description": "Seeding time still owed; null once met."
+          },
+          "seed_time_s": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed Time S",
+            "description": "Time seeded, shown once the requirement is met."
+          },
+          "uploaded_b": {
+            "type": "integer",
+            "title": "Uploaded B"
+          },
+          "downloaded_b": {
+            "type": "integer",
+            "title": "Downloaded B"
+          },
+          "ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratio"
+          },
+          "gap_b": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gap B",
+            "description": "Hit & Run only: bytes still needed for 1:1."
+          },
+          "hnr_seed_time_s": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hnr Seed Time S",
+            "description": "Hit & Run only: seeded toward the reset."
+          },
+          "on_peers": {
+            "type": "boolean",
+            "title": "On Peers"
+          },
+          "on_hnr": {
+            "type": "boolean",
+            "title": "On Hnr"
+          },
+          "seen_at": {
+            "type": "string",
+            "title": "Seen At",
+            "description": "When this record was fetched (ISO 8601, UTC)."
+          },
+          "hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hash",
+            "description": "qBittorrent's info hash; null under `unmatched`."
+          },
+          "match": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "exact",
+                  "fuzzy"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match"
+          },
+          "match_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Source",
+            "description": "What matched it: an *arr app, prowlarr, name."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tracker",
+          "tracker_id",
+          "name",
+          "name_truncated",
+          "status",
+          "remaining_s",
+          "seed_time_s",
+          "uploaded_b",
+          "downloaded_b",
+          "ratio",
+          "gap_b",
+          "hnr_seed_time_s",
+          "on_peers",
+          "on_hnr",
+          "seen_at",
+          "hash",
+          "match",
+          "match_source"
+        ],
+        "title": "TorrentRecord",
+        "description": "One tracker torrent: its Peers and Hit & Run rows joined, and its qBittorrent match."
+      },
+      "TrackerHealth": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "has_data": {
+            "type": "boolean",
+            "title": "Has Data"
+          },
+          "fetched_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fetched At"
+          },
+          "last_attempt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt"
+          },
+          "last_success": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "error_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "auth",
+                  "fetch",
+                  "parse",
+                  "suspect",
+                  "error",
+                  "config"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Kind"
+          },
+          "cookie_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookie Ok",
+            "description": "false only when the site sent a login page."
+          },
+          "failures": {
+            "type": "integer",
+            "title": "Failures"
+          },
+          "next_poll": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Poll"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ok",
+          "has_data",
+          "fetched_at",
+          "last_attempt",
+          "last_success",
+          "last_error",
+          "error_kind",
+          "cookie_ok",
+          "failures",
+          "next_poll"
+        ],
+        "title": "TrackerHealth"
+      }
+    }
+  }
+}
